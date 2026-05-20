@@ -177,12 +177,55 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;ba
 .modal-title{font-family:var(--display);font-size:24px;letter-spacing:4px;color:var(--red);margin-bottom:14px;}
 .modal-body{font-family:var(--mono);font-size:10px;color:var(--text);line-height:1.8;white-space:pre-wrap;}
 .modal-close{font-family:var(--mono);font-size:10px;margin-top:14px;cursor:pointer;color:var(--cyan);background:none;border:1px solid var(--cyan);padding:6px 14px;}
+/* ── CONTRACTS & MARKET & MANAGEMENT ── */
+.cc-grid{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+.cc{border:1px solid var(--border);padding:12px 14px;transition:all 0.15s;position:relative;overflow:hidden;}
+.cc:hover{border-color:var(--cyan);}
+.cc.completed{opacity:0.45;pointer-events:none;}
+.cc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:5px;}
+.cc-name{font-family:var(--display);font-size:16px;letter-spacing:2px;}
+.cc-badge{font-family:var(--mono);font-size:8px;padding:2px 7px;border:1px solid;letter-spacing:1px;white-space:nowrap;}
+.cc-flavor{font-family:var(--mono);font-size:9px;color:var(--dim);font-style:italic;margin-bottom:4px;}
+.cc-desc{font-family:var(--mono);font-size:9px;color:var(--text);line-height:1.6;margin-bottom:8px;}
+.cc-meta{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
+.cc-pill{font-family:var(--mono);font-size:8px;padding:2px 6px;border:1px solid var(--border);color:var(--text);}
+.cc-pill.reward{border-color:var(--green);color:var(--green);}
+.cc-pill.risk-low{border-color:var(--teal);color:var(--teal);}
+.cc-pill.risk-med{border-color:var(--orange);color:var(--orange);}
+.cc-pill.risk-high{border-color:var(--red);color:var(--red);}
+.cc-pill.pref{border-color:var(--cyan);color:var(--cyan);}
+.cc-pill.social{border-color:var(--purple);color:var(--purple);}
+.cc-assign{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.cc-assign select{background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:6px 10px;font-family:var(--mono);font-size:9px;flex:1;min-width:120px;}
+.cc-result{border-top:1px solid var(--border);margin-top:8px;padding-top:8px;}
+.cr-label{font-family:var(--display);font-size:14px;letter-spacing:2px;margin-bottom:4px;}
+.cr-text{font-family:var(--mono);font-size:9px;line-height:1.7;}
+.market-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-top:12px;}
+.mkt-card{border:1px solid var(--red);padding:14px;position:relative;background:rgba(255,58,58,0.02);}
+.mkt-name{font-family:var(--display);font-size:17px;letter-spacing:2px;color:var(--orange);margin-bottom:4px;}
+.mkt-genes{display:flex;flex-wrap:wrap;gap:3px;margin:6px 0;}
+.neg-alt{display:inline-block;font-family:var(--mono);font-size:8px;padding:2px 6px;border:1px solid var(--red);color:var(--red);margin:2px 2px 0 0;}
+.sub-status-badge{font-family:var(--mono);font-size:8px;padding:2px 7px;border:1px solid;letter-spacing:1px;display:inline-block;margin-bottom:5px;}
+.ssb-available{border-color:var(--green);color:var(--green);}
+.ssb-contract{border-color:var(--orange);color:var(--orange);}
+.ssb-training{border-color:var(--cyan);color:var(--cyan);}
+.ssb-dead{border-color:var(--red);color:var(--red);}
+.ssb-unstable{border-color:var(--red);color:var(--red);animation:pulse-red 1s ease-in-out infinite;}
+.train-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px;}
+.train-btn{font-family:var(--mono);font-size:8px;padding:7px 5px;border:1px solid var(--border);background:transparent;color:var(--dim);cursor:pointer;transition:all 0.15s;text-align:left;line-height:1.5;}
+.train-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.rc-trained{font-family:var(--mono);font-size:8px;color:var(--teal);margin-top:4px;}
+.rc-neg{font-family:var(--mono);font-size:8px;color:var(--red);margin-top:2px;line-height:1.6;}
+@media(max-width:768px){
+  .cc-top{flex-wrap:wrap;}
+  .market-grid{grid-template-columns:1fr;}
+  .train-grid{grid-template-columns:1fr;}
+  .hdr-tabs{grid-template-columns:repeat(3,1fr);}
+}
 
-/* ── MOBILE PANE NAV ── */
 .mob-pane-nav{display:none;background:var(--panel);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;}
 .mob-pane-btn{flex:1;font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:11px 4px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--dim);cursor:pointer;transition:all 0.15s;}
 .mob-pane-btn.on{color:var(--cyan);border-bottom-color:var(--cyan);}
-
 /* ── RESPONSIVE ── */
 @media(max-width:768px){
   /* Header */
@@ -192,7 +235,6 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;ba
   .hdr-tabs{order:3;width:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;}
   .tab-btn{padding:9px 4px;font-size:9px;letter-spacing:0.5px;text-align:center;}
   .hdr-right{font-size:9px;letter-spacing:0;text-align:left;}
-
   /* Lab layout → stacked panes */
   .mob-pane-nav{display:flex;}
   #tab-lab{flex-direction:column;}
@@ -200,11 +242,9 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;ba
   .pane{height:auto;overflow-y:visible;border-right:none;border-bottom:1px solid var(--border);display:none;min-height:0;}
   .pane.mob-active{display:block;}
   .pane-title{font-size:15px;letter-spacing:2px;padding:12px 14px 8px;}
-
   /* Body diagram — scale the whole wrap so absolute organ-btns scale too */
   .body-diagram-wrap{padding:10px 12px;gap:10px;}
   .mutant-svg-wrap{transform:scale(0.82);transform-origin:top center;margin-bottom:-50px;}
-
   /* Mutation browser */
   .mut-filter-bar{overflow-x:auto;flex-wrap:nowrap;padding:8px;-webkit-overflow-scrolling:touch;}
   .filter-btn{white-space:nowrap;flex-shrink:0;padding:8px 12px;font-size:10px;}
@@ -213,7 +253,6 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;ba
   .mc-tier{font-size:9px;}
   .eff{font-size:9px;padding:3px 7px;}
   .res-pill{font-size:9px;padding:3px 7px;}
-
   /* Right panel (Biology) */
   .rp-section{padding:10px 12px;}
   .rp-title{font-size:10px;letter-spacing:2px;margin-bottom:8px;}
@@ -222,17 +261,14 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;ba
   .active-mut-list{max-height:140px;}
   .am-name{font-size:10px;}
   .am-remove{font-size:12px;padding:2px 8px;}
-
   /* Buttons — bigger touch targets */
   .btn{padding:12px 18px;font-size:11px;}
   .ab-btn{padding:12px 10px;font-size:10px;min-height:44px;}
   .filter-btn{min-height:36px;}
   .tab-btn{min-height:40px;}
   .mob-pane-btn{min-height:44px;}
-
   /* Bio stats bar */
   .bstat-track{height:5px;}
-
   /* Battle screen */
   .battle-top{grid-template-columns:1fr;gap:8px;padding:12px;}
   .battle-bottom{grid-template-columns:1fr;flex:1;}
@@ -247,27 +283,22 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;ba
   #tab-battle>div:first-child{flex-wrap:wrap;gap:8px;padding:10px 12px;}
   #enemySelect,#envSelect{min-width:0;font-size:11px;padding:10px 10px;}
   .blog-entry{font-size:10px;}
-
   /* Full-screen tabs */
   .full-screen{padding:12px;}
   .codex-grid{grid-template-columns:1fr;}
   .roster-grid{grid-template-columns:1fr;}
   .rc{padding:12px;}
   .rc-name{font-size:16px;}
-
   /* Notif stack */
   .notif-stack{top:auto;bottom:16px;right:8px;left:8px;}
   .notif{max-width:100%;font-size:11px;}
-
   /* Modal */
   .modal{width:95%;padding:16px;}
   .modal-title{font-size:20px;}
   .modal-body{font-size:11px;}
   .modal-close{font-size:11px;padding:10px 18px;}
-
   /* Tooltip — disable on mobile (touch) */
   #tip{display:none!important;}
-
   /* Scrollbars thicker on mobile */
   ::-webkit-scrollbar{width:6px;}
   .mut-filter-bar::-webkit-scrollbar{height:3px;}
@@ -287,6 +318,8 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;ba
     <button class="tab-btn on" onclick="switchTab('lab',this)">⚗ LAB</button>
     <button class="tab-btn" onclick="switchTab('battle',this)">⚔ BATTLE</button>
     <button class="tab-btn" onclick="switchTab('roster',this)">◈ ROSTER</button>
+    <button class="tab-btn" onclick="switchTab('contracts',this)">📋 CONTRACTS</button>
+    <button class="tab-btn" onclick="switchTab('market',this)">🏴 MARKET</button>
     <button class="tab-btn" onclick="switchTab('codex',this)">◉ CODEX</button>
   </div>
   <div class="hdr-right">
@@ -294,7 +327,6 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;ba
     <div style="font-size:9px;color:var(--dim);margin-top:2px">MUTATIONS: <span id="mutCountHdr">0</span> ACTIVE</div>
   </div>
 </div>
-
 <!-- LAB -->
 <div id="tab-lab" style="display:flex;flex:1;flex-direction:column;">
   <div class="mob-pane-nav">
@@ -397,7 +429,6 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;ba
     </div>
   </div>
 </div>
-
 <!-- BATTLE -->
 <div id="tab-battle" class="battle-screen">
   <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:center">
@@ -436,16 +467,33 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;ba
     <div class="battle-env-pane" id="envPane"></div>
   </div>
 </div>
-
 <!-- ROSTER -->
 <div id="tab-roster" class="full-screen">
-  <div style="display:flex;justify-content:space-between;align-items:center">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px">
     <div style="font-family:var(--display);font-size:28px;letter-spacing:4px;color:var(--cyan)">SUBJECT ROSTER</div>
-    <div style="font-family:var(--mono);font-size:9px;color:var(--dim)">Select a subject to deploy in battle</div>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--dim)">Select a subject to deploy in battle. Manage training below each card.</div>
   </div>
   <div class="roster-grid" id="rosterGrid"></div>
 </div>
-
+<!-- CONTRACTS -->
+<div id="tab-contracts" class="full-screen">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+    <div style="font-family:var(--display);font-size:28px;letter-spacing:4px;color:var(--orange)">ACTIVE CONTRACTS</div>
+    <button class="btn btn-c" onclick="refreshContracts()">⟳ NEW CONTRACTS</button>
+  </div>
+  <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-bottom:12px">Assign available subjects to contracts. Results depend on stats, mutations, and social visibility.</div>
+  <div id="contractGrid" class="cc-grid"></div>
+</div>
+<!-- MARKET -->
+<div id="tab-market" class="full-screen">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+    <div style="font-family:var(--display);font-size:28px;letter-spacing:4px;color:var(--red)">BLACK MARKET</div>
+    <button class="btn btn-r" onclick="refreshMarket()">⟳ REFRESH STOCK</button>
+  </div>
+  <div style="font-family:var(--mono);font-size:9px;color:var(--orange);margin-bottom:4px">⚠ Genetic history unknown. Pre-existing alterations possible. Cost: <span style="color:var(--green)">20 BIOMASS</span> per subject.</div>
+  <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-bottom:12px">Contract rewards may also yield new subjects.</div>
+  <div id="marketGrid" class="market-grid"></div>
+</div>
 <!-- CODEX -->
 <div id="tab-codex" class="full-screen">
   <div style="font-family:var(--display);font-size:28px;letter-spacing:4px;color:var(--cyan);margin-bottom:4px">MUTATION CODEX</div>
@@ -453,7 +501,6 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;ba
   <div class="codex-grid" id="codexGrid"></div>
 </div>
 </div>
-
 <div id="tip"><div class="tip-name" id="tipName"></div><div class="tip-sci" id="tipSci"></div><div class="tip-stats" id="tipStats"></div></div>
 <div class="modal-bg" id="modal"><div class="modal"><div class="modal-title" id="modalTitle">WARNING</div><div class="modal-body" id="modalBody"></div><button class="modal-close" onclick="document.getElementById('modal').classList.remove('on')">ACKNOWLEDGE</button></div></div>
 <div class="notif-stack" id="notifStack"></div>
@@ -623,7 +670,6 @@ const MUTATIONS=[
    stats:{dodge:30,int:20},req:[],conflicts:[],
    instab:12,cancerRisk:3,organStress:20,neuralStrain:30,boneStress:0,heatOutput:0,
    visChange:'Subject mimics surrounding people unconsciously — disconcerting to observers'},
-
   // ── NEW STRUCTURAL ──
   {id:'dermal_ceramic',organ:'skin',cat:'structural',tier:2,name:'DERMAL CERAMICIZATION',icon:'🪨',
    sci:'Modified skin cells deposit ceramic-calcium composite layers analogous to abalone nacre. Carbon nanotube proteins reinforce intersecting layers at the microscopic scale — resulting in sub-dermal tiling with tensile strength exceeding structural steel.',
@@ -667,7 +713,6 @@ const MUTATIONS=[
    stats:{def:20,str:15,stam:-15},req:[],conflicts:[],
    instab:15,cancerRisk:4,organStress:22,boneStress:0,heatOutput:10,
    visChange:'Subtle rippling visible under skin during exertion — body tightens visibly during impacts'},
-
   // ── NEW SENSORY ──
   {id:'compound_eyes',organ:'brain',cat:'sensory',tier:1,name:'COMPOUND EYES',icon:'🕷',
    sci:'Human retinal tissue is restructured into an ommatidia-analog array of micro-lenses. Each lens cluster feeds to an expanded visual cortex — total angular coverage approaches 300 degrees. Motion resolution 40x baseline.',
@@ -705,7 +750,6 @@ const MUTATIONS=[
    stats:{dodge:40,int:-20},req:['split_nervous'],conflicts:[],
    instab:30,cancerRisk:12,organStress:40,neuralStrain:60,boneStress:0,heatOutput:0,
    visChange:'Small photosensitive nodes visible across back, shoulders and neck — flinch at unexpected light sources from behind'},
-
   // ── NEW NEUROLOGICAL ──
   {id:'neural_clock',organ:'brain',cat:'neurological',tier:2,name:'NEURAL OVERCLOCKING',icon:'⏱',
    sci:'Myelin sheath thickness increased 300% via oligodendrocyte BDNF cascade while synaptic vesicle docking proteins are optimized via PIP2-binding domain modification. Net signal propagation velocity 8x baseline — subjective time dilation during stress states.',
@@ -749,8 +793,128 @@ const MUTATIONS=[
    stats:{atk:20,int:15},req:[],conflicts:[],
    instab:22,cancerRisk:8,organStress:25,neuralStrain:40,boneStress:0,heatOutput:0,
    visChange:'Constant faint chemical scent — nearby people become uneasy without knowing why, animals avoid subject'},
+  // ── DNA-ONLY MUTATIONS (injected via animal DNA, not available in lab) ──
+  {id:'mantis_vision',organ:'brain',cat:'sensory',tier:3,name:'HYPERSPECTRAL VISION',icon:'🦐',dnaOnly:true,
+   sci:'Mantis shrimp ommatidia retrofitted into human retinal architecture. 16 photoreceptor channels active vs human 3. UV, infrared, and polarization axes simultaneously processed. Neural cortex expanded to handle 5x colour data throughput.',
+   pros:['16-channel colour','UV + IR sight','Perfect camo detection','Polarised water vision'],cons:['Extreme light sensitivity','Constant colour overload','Migraine clusters'],
+   stats:{dodge:20,int:30,atk:15},req:[],conflicts:[],
+   instab:22,cancerRisk:5,organStress:15,neuralStrain:50,boneStress:0,heatOutput:0,
+   visChange:'Eyes appear iridescent — shift colour in bands when exposed to different light wavelengths'},
+  {id:'cavitation_strike',organ:'muscles',cat:'structural',tier:3,name:'CAVITATION STRIKE',icon:'💥',dnaOnly:true,
+   sci:'Mantis shrimp dactyl club myosin architecture replicated in forearm flexors. Strike velocity 23 m/s — generates cavitation bubble collapse equivalent to a small-calibre round on impact. Bone reinforcement mandatory or self-destruction occurs on first use.',
+   pros:['Strike = 120 dmg','Armour piercing','Shockwave stun aura','Underwater effective'],cons:['Self-damage without reinf_skeleton','Extremely loud','Requires huge caloric input'],
+   stats:{atk:120,str:40,caloric:60},req:['reinf_skeleton'],conflicts:[],
+   instab:25,cancerRisk:6,organStress:45,neuralStrain:10,boneStress:35,heatOutput:20,
+   visChange:'Forearms visibly overdeveloped — calcified impact nodes on outer wrist'},
+  {id:'cryptobiosis',organ:'glands',cat:'metabolic',tier:3,name:'CRYPTOBIOSIS PROTOCOL',icon:'🐻',dnaOnly:true,
+   sci:'Tardigrade Dsup and CAHS proteins expressed systemically. Cells enter reversible anhydrobiosis under extreme stress — radiation, vacuum, freezing. Cellular repair cascade activates on recovery. Subject survives conditions that would liquefy standard tissue.',
+   pros:['Survive lethal radiation','Extreme cold immunity','Near-death survival trigger','Cellular repair burst on recovery'],cons:['30min recovery paralysis','Extreme hunger post-episode','Cannot trigger voluntarily at will'],
+   stats:{hp:60,def:20},req:[],conflicts:[],
+   instab:18,cancerRisk:3,organStress:20,neuralStrain:15,boneStress:0,heatOutput:-10,
+   visChange:'Skin appears faintly granular and desiccated in patches — eyes can partially retract into sockets'},
+  {id:'bioelectric_field',organ:'glands',cat:'chemical',tier:2,name:'BIOELECTRIC FIELD',icon:'⚡',dnaOnly:true,
+   sci:'Electric eel electrocyte stacks replicated along the lateral trunk musculature. 600V discharge possible. Constant low-frequency field generated for environmental sensing — detects nearby movement, metal, and bioelectric signatures through water or conductive surfaces.',
+   pros:['600V discharge attack','Passive motion detect','Metal detection','Water-amplified range'],cons:['Randomly discharges when stressed','Destroys electronics on person','Attracts lightning'],
+   stats:{atk:45,dodge:15,int:10},req:[],conflicts:[],
+   instab:20,cancerRisk:5,organStress:30,neuralStrain:25,boneStress:0,heatOutput:15,
+   visChange:'Faint visible static discharge at skin surface — hair stands permanently'},
+  {id:'limb_regen',organ:'skeleton',cat:'metabolic',tier:3,name:'AXOLOTL REGENERATION',icon:'🦎',dnaOnly:true,
+   sci:'Axolotl blastema-forming stem cell populations established at all limb termini. Full limb regrowth possible over 6–8 weeks following amputation. Spinal cord and cardiac tissue also included in regeneration scope — battlefield recovery from near-total destruction is feasible.',
+   pros:['Regrow severed limbs','Spinal repair','Cardiac regrowth','Scar-free healing'],cons:['Regrowth consumes enormous calories','Regrown tissue initially weak','Tumour risk during regrowth'],
+   stats:{hp:50,regen:20},req:[],conflicts:[],
+   instab:20,cancerRisk:18,organStress:25,neuralStrain:10,boneStress:0,heatOutput:0,
+   visChange:'Healed wounds leave no scar — regrown skin slightly paler and smoother than original'},
+  {id:'chromatophore',organ:'skin',cat:'sensory',tier:3,name:'CHROMATOPHORE CAMOUFLAGE',icon:'🐙',dnaOnly:true,
+   sci:'Cephalopod chromatophore, iridophore, and papillae muscle cells integrated into the dermis. Full-body colour and texture change in under 300ms — matching backgrounds with 94% visual accuracy. Neural interface allows both conscious and reflex camouflage.',
+   pros:['Active camouflage','Background texture match','Stealth bonus +++','Colour-based communication'],cons:['Emotional states broadcast involuntarily','Extreme concentration required to maintain','Fails under stress hormones'],
+   stats:{dodge:45,int:10},req:[],conflicts:[],
+   instab:22,cancerRisk:7,organStress:20,neuralStrain:40,boneStress:0,heatOutput:0,
+   visChange:'Skin shifts through subtle colour gradients with mood — eyes flicker patterns during stress'},
+  {id:'pain_immunity',organ:'brain',cat:'neurological',tier:2,name:'PAIN IMMUNITY',icon:'🦡',dnaOnly:true,
+   sci:'Honey badger and naked mole rat SCN9A and TRPV1 gene modifications eliminate nociceptive signalling. Subject physically cannot experience pain. Wound feedback replaced by pressure-only sensation — subject continues fighting through injuries that would incapacitate any other organism.',
+   pros:['Zero pain response','Fight through any wound','No fear of injury','Immunity to pain-based control'],cons:['Injury goes unnoticed — dangerous','Psychological detachment','Cannot feel warmth or pleasure signals'],
+   stats:{hp:30,atk:20,def:10},req:[],conflicts:[],
+   instab:14,cancerRisk:3,organStress:20,neuralStrain:25,boneStress:0,heatOutput:0,
+   visChange:'Subject does not flinch — continues moving normally through wounds that produce visible blood'},
+  {id:'cancer_suppress',organ:'glands',cat:'metabolic',tier:2,name:'CANCER SUPPRESSION GENE',icon:'🧬',dnaOnly:true,
+   sci:'Naked mole rat hyaluronan synthase-2 overexpression combined with p16 and p27 early contact inhibition. Extremely high molecular-weight hyaluronan forms a physical barrier to unchecked cell proliferation. Cancer risk reduced by 94% across all tissue types.',
+   pros:['Near-cancer-proof','Reduces all instability risks','Extends mutation tolerance','Hyaluronic tissue resilience'],cons:['Slightly reduced cell turnover','Slower wound healing in low-damage scenarios'],
+   stats:{hp:20,regen:5},req:[],conflicts:[],
+   instab:-10,cancerRisk:-20,organStress:-15,neuralStrain:0,boneStress:0,heatOutput:0,
+   visChange:'Skin appears unusually even and unblemished — no visible ageing markers'},
+  {id:'ampullae',organ:'brain',cat:'sensory',tier:2,name:'AMPULLAE OF LORENZINI',icon:'🦈',dnaOnly:true,
+   sci:'Shark electroreceptor gel-filled canals reconstructed in facial subdermal tissue. Detects bioelectric fields as weak as 0.005 μV/cm — heartbeat detection through walls, concealed weapons, buried electronics. Range scales with subject health.',
+   pros:['Detect heartbeats through walls','Hidden weapon detection','Underwater EM sense','Cannot be fooled by camouflage'],cons:['Overwhelmed by power lines or cities','Painful near high-voltage sources'],
+   stats:{dodge:20,int:25,atk:10},req:[],conflicts:[],
+   instab:12,cancerRisk:2,organStress:12,neuralStrain:30,boneStress:0,heatOutput:0,
+   visChange:'Faint pore-like pits visible across cheeks and jaw — subject constantly tilts head tracking signals'},
+  {id:'jaw_density',organ:'skeleton',cat:'structural',tier:2,name:'MEGALODON JAW MATRIX',icon:'🦷',dnaOnly:true,
+   sci:'Megalodon cartilaginous jaw reinforcement proteins expressed in human mandible and dentition. Bite force increased to 1.8 tonnes. Teeth continuously replaced via polyphyodonty — serrated and self-sharpening. Jaw withstands forces that shatter steel.',
+   pros:['Bite 80 dmg','Steel-cutting teeth','Bite = armour pierce','Continuous tooth regrowth'],cons:['Jaw visibly inhuman','Cannot eat normal food comfortably','Speech impaired'],
+   stats:{atk:80,def:10},req:[],conflicts:[],
+   instab:16,cancerRisk:4,organStress:22,neuralStrain:0,boneStress:10,heatOutput:0,
+   visChange:'Jaw is visibly widened and forward-set — rows of replacement teeth visible behind primary row'},
+  {id:'hollow_bones',organ:'skeleton',cat:'structural',tier:1,name:'PNEUMATISED BONE STRUCTURE',icon:'🦅',dnaOnly:true,
+   sci:'Avian-derived bone pneumatisation — internal bone matrix replaced with air-cell honeycomb analogous to pterosaur and modern bird anatomy. Mass reduction 35% while maintaining structural integrity. Speed and agility dramatically improved.',
+   pros:['+35 SPD','+25 DODGE','Reduced fall injury','Silent movement'],cons:['-30 HP (less mass)','Fracture risk if hit','Cannot mix with dense bone mods'],
+   stats:{spd:35,dodge:25,hp:-30},req:[],conflicts:['reinf_skeleton','dense_muscle'],
+   instab:14,cancerRisk:3,organStress:15,neuralStrain:0,boneStress:25,heatOutput:0,
+   visChange:'Noticeably lighter build than frame suggests — movement is eerily quiet on all surfaces'},
+  {id:'dunkle_skull',organ:'skeleton',cat:'structural',tier:2,name:'ARMOURED SKULL PLATE',icon:'🪖',dnaOnly:true,
+   sci:'Dunkleosteus terrelli dermal bone plate architecture reconstructed as a cranial overlay. Fused interlocking bone plates 4cm thick replace the cranial vault. Head-on ballistic impacts that would be fatal to standard anatomy are shrugged off entirely.',
+   pros:['Head is bulletproof','Headbutt = 60 dmg','Concussion immune','Intimidating presence'],cons:['Head extremely heavy','-10 SPD','Cannot wear headgear'],
+   stats:{def:40,atk:15,spd:-10,hp:30},req:[],conflicts:[],
+   instab:18,cancerRisk:4,organStress:25,neuralStrain:0,boneStress:20,heatOutput:0,
+   visChange:'Forehead and crown visibly plated and ridged — movement of neck is slightly reduced'},
+  {id:'arthro_chitin',organ:'skin',cat:'structural',tier:3,name:'ARTHROPLEURA EXOSKELETON',icon:'🦂',dnaOnly:true,
+   sci:'Carboniferous giant millipede cuticle proteins expressed across the dorsal surface. Rigid-segmented chitin-protein composite plates cover back, shoulders and flanks — each segment 8mm thick and impact-resistant to 9mm rounds. Underneath, soft articulation tissue remains mobile.',
+   pros:['Segmented armour +55 DEF','Poison resist','Impact distribution','Arachnid fear response in observers'],cons:['+++ Weight','-SPD','Cannot be removed','+++ Heat retention'],
+   stats:{def:55,spd:-20,heatOutput:25},req:[],conflicts:['elastic_skin'],
+   instab:28,cancerRisk:9,organStress:40,neuralStrain:0,boneStress:5,heatOutput:25,
+   visChange:'Dorsal surface fully plated in dark segmented chitin — clicking sound during movement'},
+  {id:'deep_pressure',organ:'glands',cat:'metabolic',tier:2,name:'DEEP PRESSURE RESISTANCE',icon:'🐳',dnaOnly:true,
+   sci:'Basilosaurus and sperm whale myoglobin, splenic contraction, and bradycardia adaptations expressed. Blood oxygen efficiency 400% baseline — subject can operate at crushing depths or in oxygen-deprived environments. Organs resist compression equivalent to 300m ocean depth.',
+   pros:['Breathe sparse air longer','Dive physiology','Organ crush resistance','Cold water tolerance'],cons:['Resting heart rate very low','Hypoxia adaptation means altitude sickness'],
+   stats:{hp:35,stam:40,def:20},req:[],conflicts:[],
+   instab:14,cancerRisk:3,organStress:18,neuralStrain:0,boneStress:0,heatOutput:-10,
+   visChange:'Skin has a faint blue-grey undertone — pulse visible but very slow even under exertion'},
+  {id:'sarco_armor',organ:'skin',cat:'structural',tier:2,name:'DERMAL SCUTE ARRAY',icon:'🐊',dnaOnly:true,
+   sci:'Sarcosuchus imperator osteoderms — bony skin plates with internal vascularisation — reconstructed in human subdermal tissue. Acts as both armour and a thermoregulatory radiator. Scutes are load-bearing and can absorb direct melee hits without penetration.',
+   pros:['+40 DEF melee','Thermal regulation','Self-repairing bone-skin','Intimidating texture'],cons:['Rigid — reduced flexibility','+Weight','+Visible — stealth impossible'],
+   stats:{def:40,spd:-10,heatOutput:-5},req:[],conflicts:[],
+   instab:18,cancerRisk:5,organStress:28,neuralStrain:0,boneStress:8,heatOutput:-5,
+   visChange:'Raised bony scutes visible along forearms, back, and flanks — greenish-brown skin tone'},
+  {id:'raking_claw',organ:'skeleton',cat:'structural',tier:2,name:'THERIZINOSAURUS RAKE CLAWS',icon:'🦕',dnaOnly:true,
+   sci:'Therizinosaurus cheloniformis ungual phalanx architecture expressed at all five digits. Claws grow to 60–80cm, powered by enlarged flexor tendons. Capable of disembowelling, raking through vehicle sheet metal, and climbing sheer surfaces.',
+   pros:['Claw rake = 70 dmg','Wall climbing','Armour shredding','Multi-target sweep possible'],cons:['Claws always deployed — social impact catastrophic','Cannot use tools or firearms','Catch on everything'],
+   stats:{atk:70,str:25,dodge:-10},req:[],conflicts:[],
+   instab:20,cancerRisk:6,organStress:22,neuralStrain:0,boneStress:15,heatOutput:0,
+   visChange:'Hands permanently clawed — 60cm keratin scythe-blades extend from all fingers'},
+  {id:'hallucigenia_spines',organ:'skin',cat:'structural',tier:2,name:'HALLUCIGENIA SPINE ARRAY',icon:'🌵',dnaOnly:true,
+   sci:'Hallucigenia sparsa paired dorsal spine proteins reconstructed and expressed along the vertebral column, shoulders, and scalp. Hollow spines can be venom-loaded via modified sweat glands. Retraction is partial — base always visible.',
+   pros:['Grapple counter 30 dmg','Venom inject on contact','Intimidation passive','Back-attack immune'],cons:['Cannot lie on back','Sleep only prone or standing','Clothing impossible'],
+   stats:{atk:30,def:20},req:[],conflicts:[],
+   instab:16,cancerRisk:5,organStress:18,neuralStrain:0,boneStress:5,heatOutput:0,
+   visChange:'A row of 10–14 hollow spines runs from skull to lower back — tip glistens with secretion'},
+  {id:'trex_olfaction',organ:'brain',cat:'sensory',tier:1,name:'APEX OLFACTORY CORTEX',icon:'🦖',dnaOnly:true,
+   sci:'T. rex olfactory bulb proportions reconstructed — olfactory cortex expanded to 6× human baseline. Airborne scent molecules detected at 1 part per trillion. Prey-tracking instinct subroutines hardwired into threat assessment circuits.',
+   pros:['Track by scent 10km','Identify individuals at distance','Detect fear/blood instantly','Predator presence detection'],cons:['Urban environments agonising','Food smells become obsessive','Carrion scent causes nausea attacks'],
+   stats:{int:20,dodge:15,atk:10},req:[],conflicts:[],
+   instab:10,cancerRisk:2,organStress:12,neuralStrain:22,boneStress:0,heatOutput:0,
+   visChange:'Nostrils significantly enlarged — subject frequently observed scent-testing the air'},
+  {id:'anomalo_eyes',organ:'brain',cat:'sensory',tier:3,name:'RADIODONT COMPOUND EYES',icon:'🦐',dnaOnly:true,
+   sci:'Anomalocaris canadensis stalked compound eye architecture — each eye contains ~16,000 lenses in a 180° arc. Both eyes together provide 360° visual coverage with overlapping fields for depth perception. Motion resolution exceeds any living vertebrate.',
+   pros:['360° vision no blind spot','16000-lens resolution','Motion prediction AI-tier','Effective in any light'],cons:['Eyes protrude on short stalks — fragile','Impossible to close eyes — no sleep','Constant visual processing drain'],
+   stats:{dodge:40,int:20,atk:15},req:[],conflicts:[],
+   instab:25,cancerRisk:8,organStress:18,neuralStrain:55,boneStress:0,heatOutput:0,
+   visChange:'Eyes are on short muscular stalks extending 3–4cm from orbits — cannot look "forward" in the human sense'},
+  {id:'jaekel_armor',organ:'skin',cat:'structural',tier:3,name:'SEA SCORPION CARAPACE',icon:'🦂',dnaOnly:true,
+   sci:'Jaekelopterus rhenaniae — largest arthropod in Earth history at 2.5m — exoskeletal proteins and joint architecture reconstructed as a full-body carapace. Mineralised cuticle 12mm thick at torso, tapering to articulated limb segments. Near-immune to bladed weapons.',
+   pros:['Blade immune','+60 DEF','+50 HP','Aquatic mobility bonus'],cons:['Enormously heavy','-30 SPD','Cannot wear anything over it','Moult cycle causes 48hr vulnerability'],
+   stats:{def:60,hp:50,spd:-30,heatOutput:10},req:[],conflicts:['elastic_skin','hollow_bones'],
+   instab:30,cancerRisk:10,organStress:45,neuralStrain:0,boneStress:10,heatOutput:10,
+   visChange:'Entire body encased in segmented blue-black arthropod carapace — movement accompanied by clacking'},
 ];
-
 const COMBOS=[
   {id:'bulletproof',name:'ADAMANTINE SHELL',rarity:'legendary',
    req:['bone_weave','chitin','acid_tissue'],
@@ -825,7 +989,6 @@ const COMBOS=[
    statMod:{atk:60,str:50,def:10},
    ability:{name:'PRIMAL TERROR',dmg:30,stun:true,desc:'Fear emission — 30 dmg + stun from overwhelming dread',stam:35}}
 ];
-
 const ENEMIES=[
   {id:'ironclad',name:'IRONCLAD MK-VII',desc:'Brute-force juggernaut. Max durability, minimal grace.',
    faction:'APEX CORP',muts:['bone_weave','chitin','myostatin_null','pain_null'],
@@ -876,7 +1039,6 @@ const ENEMIES=[
      {name:'RAPID REGEN',dmg:0,heal:50,desc:'Emergency cellular regeneration'},
    ]},
 ];
-
 const ENVIRONMENTS=[
   {id:'standard',name:'STANDARD ARENA',icon:'⬜',desc:'Controlled environment. No modifiers.',effects:[]},
   {id:'arctic',name:'ARCTIC TUNDRA',icon:'❄',desc:'Sub-zero temperatures. Thermal mutations stressed.',
@@ -902,17 +1064,17 @@ const ENVIRONMENTS=[
      {target:'player',check:s=>s.genes.includes('thermogenic'),label:'THERMOGENIC: THRIVES HERE',buffDef:15},
    ]},
 ];
-
 // ═══════════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════════
 let G={
-  biomass:25,selectedOrgan:null,filterCat:'all',
+  biomass:40,selectedOrgan:null,filterCat:'all',
   equippedMuts:{},combos:[],roster:[],selectedRosterIdx:null,
   instability:0,mutationStage:0,
   battle:null,BL:null,
+  subjects:[],availableContracts:[],completedContracts:[],marketStock:[],activeSubjectIdx:0,
+  dnaInventory:[],dnaMarketStock:[],
 };
-
 function getList(){return Object.values(G.equippedMuts).flat();}
 function getMut(id){return MUTATIONS.find(m=>m.id===id);}
 function getOrgan(id){return ORGANS.find(o=>o.id===id);}
@@ -921,7 +1083,6 @@ function tierColor(t){return['#888','#3dff8f','#1fd8e8','#ff7c22','#b044ff','#ff
 function costMut(m){return(m.tier+1)*3;}
 function totalBMUsed(){return getList().reduce((s,id)=>{const m=getMut(id);return s+(m?costMut(m):0);},0);}
 function bmLeft(){return G.biomass-totalBMUsed();}
-
 function computeStats(){
   let s={hp:100,atk:20,def:10,spd:60,str:15,dodge:15,int:10,stam:100,regen:0,
          caloric:0,hydration:0,heatOutput:0,cancerRisk:0,organStress:0,neuralStrain:0,boneStress:0,aura:0,poison:0};
@@ -938,7 +1099,6 @@ function computeStats(){
   s.regen=Math.max(0,Math.min(60,s.regen));s.stam=Math.max(50,s.stam);
   return s;
 }
-
 function computeInstability(){
   const list=getList();let t=0;
   for(const id of list){const m=getMut(id);if(m)t+=m.instab||0;}
@@ -946,16 +1106,13 @@ function computeInstability(){
   t-=G.combos.length*5;
   return Math.max(0,Math.min(100,t));
 }
-
 function checkCombos(){
   const list=getList();const prev=G.combos.map(c=>c.id);
   G.combos=COMBOS.filter(c=>c.req.every(r=>list.includes(r)));
   G.combos.forEach(c=>{if(!prev.includes(c.id)){addEvent('⚡ EMERGENT: '+c.name,'combo');pushNotif(c.name+' emerged!','combo');}});
 }
-
 function checkReqs(m){return(m.req||[]).every(r=>getList().includes(r));}
 function checkConflicts(m){return(m.conflicts||[]).some(c=>getList().includes(c));}
-
 function equipMut(id){
   const m=getMut(id);if(!m)return;
   const org=getOrgan(m.organ);
@@ -970,22 +1127,18 @@ function equipMut(id){
   checkCombos();G.instability=computeInstability();
   checkInstabEvents();updateStage();renderAll();
 }
-
 function unequipMut(id){
   const organ=(getMut(id)||{}).organ;if(!organ||!G.equippedMuts[organ])return;
   G.equippedMuts[organ]=G.equippedMuts[organ].filter(x=>x!==id);
   checkCombos();G.instability=computeInstability();updateStage();
   addEvent('Removed: '+(getMut(id)||{}).name,'warn');renderAll();
 }
-
 function clearSubject(){G.equippedMuts={};G.combos=[];G.instability=0;G.mutationStage=0;updateStage();renderAll();addEvent('Subject reset','warn');}
-
 function checkInstabEvents(){
   const i=G.instability;
   if(i>75&&Math.random()<0.3)triggerCritEvent();
   else if(i>50&&Math.random()<0.15)triggerMinorEvent();
 }
-
 function triggerMinorEvent(){
   const ev=[
     {t:'MICRO-SEIZURE',b:'Neural overload triggers brief grand mal episode. -10 INT temporarily. Subject reports visual snow and metallic taste.'},
@@ -995,463 +1148,6 @@ function triggerMinorEvent(){
   ][Math.floor(Math.random()*4)];
   addEvent('⚠ INSTABILITY EVENT: '+ev.t,'danger');showModal(ev.t,ev.b);
 }
-
 function triggerCritEvent(){
   const ev=[
-    {t:'ORGAN CASCADE FAILURE',b:'CRITICAL: Multiple organ systems entering stress cascade. Liver enzymes at 4000 IU/L. Kidneys showing acute tubular necrosis.\n\nInstability reduced 20% via emergency suppression but permanent organ damage possible.'},
-    {t:'MUTATION RUNAWAY GROWTH',b:'CRITICAL: Uncontrolled cellular replication in modified tissue. Rapid growth along left thorax. Classification: Pre-malignant.\n\nSurgical intervention required.'},
-    {t:'NEUROLOGICAL COLLAPSE',b:'CRITICAL: Synaptic overload causing progressive neural necrosis. EEG flatline in modified sectors. Loss of modified neurological function for 72 hours.\n\nReduce neural mutations recommended.'},
-    {t:'AUTOIMMUNE ATTACK',b:'CRITICAL: Immune system targeting modified tissue as foreign. WBC: 180,000/uL. T-cells attacking all mutation sites.\n\nEmergency immunosuppression initiated. High mortality risk.'},
-  ][Math.floor(Math.random()*4)];
-  addEvent('🚨 CRITICAL: '+ev.t,'danger');showModal(ev.t,ev.b);
-}
-
-const STAGES=[
-  {label:'UNMODIFIED',color:'#888',desc:'No visible modifications. Baseline human.'},
-  {label:'EARLY SIGNS',color:'#3dff8f',desc:'Subtle changes — unusual skin tone, faint vascular patterns, altered eye color.'},
-  {label:'MODERATE',color:'#f5d000',desc:'Visible deformations — bone ridges, unusual musculature, altered sensory organs.'},
-  {label:'SEVERE',color:'#ff7c22',desc:'Obvious post-human appearance. Multiple systems altered. Causes civilian panic.'},
-  {label:'EXTREME',color:'#b044ff',desc:'Barely recognizable as human. Body architecture fundamentally altered.'},
-  {label:'TRANSHUMAN',color:'#ff3a3a',desc:'Post-human organism. No longer identifiable as homo sapiens.'},
-];
-function updateStage(){const c=getList().length;G.mutationStage=c<=1?0:c<=3?1:c<=6?2:c<=9?3:c<=12?4:5;}
-
-// ═══════════════════════════════════════════════════════
-//  RENDER
-// ═══════════════════════════════════════════════════════
-function renderAll(){renderBioStats();renderMutList();renderBodySvg();renderInstab();renderActiveMuts();renderCombos();renderVisualStage();renderHdr();}
-
-function renderBioStats(){
-  const s=computeStats();
-  const defs=[
-    {k:'hp',l:'VITALITY',max:600,c:'#3dff8f'},{k:'stam',l:'STAMINA',max:200,c:'#ff7c22'},
-    {k:'def',l:'DEFENSE',max:100,c:'#3a7fff'},{k:'spd',l:'SPEED',max:200,c:'#f5d000'},
-    {k:'atk',l:'ATTACK',max:200,c:'#ff3a3a'},{k:'dodge',l:'DODGE',max:90,c:'#b044ff'},
-    {k:'regen',l:'REGEN/TURN',max:60,c:'#00d4a0'},{k:'caloric',l:'CALORIC LOAD',max:500,c:'#ff8844'},
-    {k:'heatOutput',l:'HEAT OUTPUT',max:120,c:'#ff4422'},{k:'cancerRisk',l:'CANCER RISK',max:60,c:'#ff00aa'},
-    {k:'organStress',l:'ORGAN STRESS',max:200,c:'#ffaa00'},{k:'neuralStrain',l:'NEURAL STRAIN',max:150,c:'#aa44ff'},
-  ];
-  document.getElementById('bioStats').innerHTML=defs.map(d=>{
-    const v=Math.max(0,s[d.k]||0);const p=Math.min(100,(v/d.max)*100);
-    return`<div class="bstat"><div class="bstat-name">${d.l}</div><div class="bstat-track"><div class="bstat-fill" style="width:${p}%;background:${d.c}"></div></div><div class="bstat-val">${v}</div></div>`;
-  }).join('');
-}
-
-function renderMutList(){
-  const organ=G.selectedOrgan;
-  document.getElementById('organLabel').textContent=organ?(getOrgan(organ)||{}).name||organ:'SELECT ORGAN';
-  const list=document.getElementById('mutList');
-  const equipped=getList();
-  const filtered=MUTATIONS.filter(m=>G.filterCat==='all'||m.cat===G.filterCat);
-  list.innerHTML=filtered.map(m=>{
-    const isEq=equipped.includes(m.id);
-    const isConf=!isEq&&checkConflicts(m);
-    const reqsMet=checkReqs(m);
-    const canAfford=isEq||costMut(m)<=bmLeft();
-    const orgFull=!isEq&&(G.equippedMuts[m.organ]||[]).length>=(getOrgan(m.organ)||{slots:3}).slots;
-    const locked=!isEq&&(!reqsMet||isConf||!canAfford||orgFull);
-    const tc=tierColor(m.tier);
-    return`<div class="mut-card${isEq?' equipped':''}${isConf?' incompatible':locked?' locked':''}"
-      onmouseenter="showTip(event,'${m.id}')" onmouseleave="hideTip()">
-      <div class="mc-top">
-        <div class="mc-name" style="color:${isEq?'var(--green)':isConf?'var(--red)':'var(--text2)'}">${m.icon} ${m.name}</div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
-          <div class="mc-tier" style="border-color:${tc};color:${tc}">${TIERS[m.tier]}</div>
-          <div style="font-family:var(--mono);font-size:8px;color:var(--dim)">${costMut(m)} BM · ${m.organ.toUpperCase()}</div>
-        </div>
-      </div>
-      <div class="mc-cat" style="color:${catColor(m.cat)}">${m.cat.toUpperCase()}</div>
-      <div class="mc-sci">${m.sci.substring(0,110)}...</div>
-      <div class="mc-effects">
-        ${m.pros.map(p=>`<span class="eff pos">${p}</span>`).join('')}
-        ${m.cons.map(c=>`<span class="eff neg">${c}</span>`).join('')}
-      </div>
-      <div class="mc-res">
-        <span class="res-pill">INSTAB +${m.instab}</span>
-        <span class="res-pill">CANCER +${m.cancerRisk}%</span>
-        <span class="res-pill">ORGAN +${m.organStress}</span>
-        ${m.req&&m.req.length?`<span class="res-pill" style="color:var(--orange)">REQ: ${m.req.map(r=>(getMut(r)||{}).name||r).join(', ')}</span>`:''}
-      </div>
-      <div style="margin-top:8px;display:flex;justify-content:flex-end">
-        <button class="btn ${isEq?'btn-r':'btn-g'}" style="font-size:8px;padding:5px 12px"
-          onclick="equipMut('${m.id}')" ${locked?'disabled title="Cannot equip"':''}>
-          ${isEq?'REMOVE':'APPLY'}
-        </button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function renderBodySvg(){
-  const eq=getList();const ov=document.getElementById('svgMutOverlay');ov.innerHTML='';
-  const c=eq.length;
-  const bodyColor=`rgb(${Math.min(255,15+c*10)},${Math.max(20,60-c*3)},${Math.max(10,30-c*2)})`;
-  const strokeColor=c>8?'#ff3a3a':c>4?'#ffaa00':'#2a5a3a';
-  ['svgHead','svgTorso','svgLArm','svgRArm','svgLLeg','svgRLeg'].forEach(id=>{
-    const el=document.getElementById(id);if(el){el.setAttribute('fill',bodyColor);el.setAttribute('stroke',strokeColor);}
-  });
-  if(eq.includes('chitin'))ov.innerHTML+=`<g opacity="0.7"><polygon points="70,68 90,68 80,85" fill="#666" stroke="#888" stroke-width="0.5"/><polygon points="46,80 66,80 56,95" fill="#666" stroke="#888" stroke-width="0.5"/><polygon points="94,80 114,80 104,95" fill="#666" stroke="#888" stroke-width="0.5"/></g>`;
-  if(eq.includes('bone_spurs'))ov.innerHTML+=`<g fill="#e8e8e0" opacity="0.9"><polygon points="18,76 22,58 26,76"/><polygon points="28,76 32,60 36,76"/><polygon points="117,76 121,58 125,76"/><polygon points="127,76 131,60 135,76"/><polygon points="70,68 74,50 78,68"/></g>`;
-  if(eq.includes('thermogenic'))ov.innerHTML+=Array.from({length:6},(_,i)=>`<circle cx="${50+i*12}" cy="${90+i%2*20}" r="3" fill="#ff4400" opacity="0.4"><animate attributeName="opacity" values="0;0.8;0" dur="${1+i*0.2}s" repeatCount="indefinite"/></circle>`).join('');
-  if(eq.includes('extra_limbs'))ov.innerHTML+=`<rect x="0" y="90" width="16" height="55" rx="6" fill="${bodyColor}" stroke="${strokeColor}" stroke-width="1.5"/><rect x="144" y="90" width="16" height="55" rx="6" fill="${bodyColor}" stroke="${strokeColor}" stroke-width="1.5"/>`;
-  const eyeColor=eq.includes('thermal_vision')?'#ffaa00':eq.includes('electrosense')?'#1fd8e8':eq.includes('night_vision')?'#aaaaff':'rgba(61,255,143,0.7)';
-  document.getElementById('svgEyeL').setAttribute('fill',eyeColor);
-  document.getElementById('svgEyeR').setAttribute('fill',eyeColor);
-  if(eq.some(id=>['synaptic_od','split_nervous','mirror_hyper'].includes(id))){
-    document.getElementById('svgNeuro').style.opacity='0.8';
-    ov.innerHTML+=`<ellipse cx="80" cy="38" rx="30" ry="34" fill="none" stroke="#b044ff" stroke-width="1" opacity="0.5"><animate attributeName="stroke-opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite"/></ellipse>`;
-  }else{document.getElementById('svgNeuro').style.opacity='0.3';}
-  document.getElementById('svgVeins').style.opacity=eq.includes('regen_marrow')?'0.6':'0';
-  if(G.instability>70)ov.innerHTML+=Array.from({length:3},(_,i)=>`<circle cx="${45+i*35}" cy="${80+i*30}" r="6" fill="#ff3a3a" opacity="0.12"><animate attributeName="r" values="6;10;6" dur="${0.8+i*0.3}s" repeatCount="indefinite"/></circle>`).join('');
-  ORGANS.forEach(org=>{
-    const ob=document.getElementById('ob-'+org.id);if(!ob)return;
-    const slots=G.equippedMuts[org.id]||[];
-    ob.classList.remove('has-mutation','unstable','selected');
-    if(slots.length>0)ob.classList.add('has-mutation');
-    if(G.selectedOrgan===org.id)ob.classList.add('selected');
-  });
-}
-
-function renderInstab(){
-  const i=G.instability;
-  const fill=document.getElementById('instabFill');
-  const color=i>75?'#ff3a3a':i>50?'#ff7c22':i>25?'#f5d000':'#3dff8f';
-  fill.style.width=i+'%';fill.style.background=`linear-gradient(90deg,${color}88,${color})`;
-  document.getElementById('instabVal').textContent=i+'%';
-  document.getElementById('instabVal').style.color=color;
-  document.getElementById('instabLabel').textContent=i>75?'CRITICAL':i>50?'DANGEROUS':i>25?'ELEVATED':'STABLE';
-  document.getElementById('instabLabel').style.color=color;
-  const s=computeStats();const r=[];
-  if(s.cancerRisk>15)r.push(`<div style="color:var(--red)">🦀 CANCER RISK: ${s.cancerRisk}%</div>`);
-  if(s.organStress>80)r.push(`<div style="color:var(--red)">⚠ ORGAN STRESS HIGH</div>`);
-  if(s.neuralStrain>60)r.push(`<div style="color:var(--red)">⚡ NEURAL STRAIN: SEIZURE RISK</div>`);
-  if(s.boneStress>20)r.push(`<div style="color:var(--red)">🦴 BONE FRACTURE RISK</div>`);
-  document.getElementById('instabRisks').innerHTML=r.join('');
-}
-
-function renderActiveMuts(){
-  const eq=getList();
-  document.getElementById('activeMutCount').textContent=eq.length;
-  document.getElementById('mutCountHdr').textContent=eq.length;
-  const list=document.getElementById('activeMutList');
-  if(!eq.length){list.innerHTML='<div style="font-family:var(--mono);font-size:9px;color:var(--dim);text-align:center;padding:8px">No mutations applied</div>';return;}
-  list.innerHTML=eq.map(id=>{const m=getMut(id);if(!m)return'';return`<div class="am-row"><span class="am-name" style="color:${tierColor(m.tier)}">${m.icon} ${m.name}</span><button class="am-remove" onclick="unequipMut('${id}')">✕</button></div>`;}).join('');
-}
-
-function renderCombos(){
-  const cd=document.getElementById('comboDisplay');
-  if(!G.combos.length){cd.innerHTML='<div style="font-family:var(--mono);font-size:8px;color:var(--dim);text-align:center;padding:8px">Combine mutations to trigger emergent effects...</div>';return;}
-  cd.innerHTML=G.combos.map(c=>`<div class="cu-card"><div class="cu-name">${c.name}</div><div style="font-family:var(--mono);font-size:8px;color:var(--dim);margin-bottom:4px">${c.rarity.toUpperCase()}</div><div class="cu-desc">${c.sci.substring(0,100)}...</div><div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px">${c.effects.map(e=>`<span class="eff ${e.t}">${e.l}</span>`).join('')}</div>${c.ability?`<div style="font-family:var(--mono);font-size:8px;color:var(--yellow);margin-top:4px">⚡ ${c.ability.name}: ${c.ability.desc}</div>`:''}</div>`).join('');
-}
-
-function renderVisualStage(){
-  const st=STAGES[G.mutationStage]||STAGES[0];
-  const changes=getList().map(id=>(getMut(id)||{}).visChange).filter(Boolean);
-  document.getElementById('visualStage').innerHTML=`<div style="font-family:var(--display);font-size:16px;letter-spacing:3px;color:${st.color};margin-bottom:4px">${st.label}</div><div style="font-family:var(--mono);font-size:8px;color:var(--text);margin-bottom:6px">${st.desc}</div>${changes.length?`<div style="font-family:var(--mono);font-size:8px;color:var(--dim)">• ${changes.join('<br>• ')}</div>`:''}`;
-}
-
-function renderHdr(){document.getElementById('resDisplay').textContent=`BIOMASS: ${bmLeft()} / ${G.biomass} | INSTABILITY: ${G.instability}%`;}
-
-function addEvent(msg,type='info'){
-  const log=document.getElementById('eventLog');const d=document.createElement('div');
-  d.className='ev '+type;d.textContent=msg;log.appendChild(d);log.scrollTop=log.scrollHeight;
-}
-
-function showTip(e,id){
-  const m=getMut(id);if(!m)return;
-  document.getElementById('tipName').textContent=m.icon+' '+m.name;
-  document.getElementById('tipSci').textContent=m.sci;
-  document.getElementById('tipStats').innerHTML=Object.entries(m.stats||{}).map(([k,v])=>`${k}: ${v>0?'+':''}${v}`).join(' | ');
-  const tip=document.getElementById('tip');tip.style.display='block';moveTip(e);
-  document.addEventListener('mousemove',moveTip);
-}
-function hideTip(){document.getElementById('tip').style.display='none';document.removeEventListener('mousemove',moveTip);}
-function moveTip(e){const tip=document.getElementById('tip');let x=e.clientX+14,y=e.clientY+14;if(x+270>window.innerWidth)x=e.clientX-280;if(y+210>window.innerHeight)y=e.clientY-220;tip.style.left=x+'px';tip.style.top=y+'px';}
-function showModal(title,body){document.getElementById('modalTitle').textContent=title;document.getElementById('modalBody').textContent=body;document.getElementById('modal').classList.add('on');}
-function pushNotif(msg,type='ok'){const s=document.getElementById('notifStack');const d=document.createElement('div');d.className='notif '+type;d.textContent=msg;s.appendChild(d);setTimeout(()=>d.remove(),3500);}
-
-function selectOrgan(id){
-  G.selectedOrgan=G.selectedOrgan===id?null:id;
-  renderMutList();renderBodySvg();
-  // Auto-switch to mutations pane on mobile when organ selected
-  if(window.innerWidth<=768&&id){
-    const btn=document.querySelector('.mob-pane-btn:nth-child(2)');
-    if(btn)switchLabPane('mutations',btn);
-  }
-}
-function setFilter(cat,btn){G.filterCat=cat;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderMutList();}
-
-function saveRoster(){
-  const name=document.getElementById('subjectName').value||'SUBJECT';
-  const genes=getList();if(!genes.length){pushNotif('No mutations to save!','warn');return;}
-  const stats=computeStats();
-  G.roster.push({id:Date.now(),name,genes,combos:[...G.combos],stats,stage:G.mutationStage,instability:G.instability});
-  pushNotif(name+' saved to roster!','ok');addEvent('"'+name+'" archived to roster','success');
-}
-
-function renderRoster(){
-  const grid=document.getElementById('rosterGrid');
-  if(!G.roster.length){grid.innerHTML='<div style="font-family:var(--mono);font-size:10px;color:var(--dim);padding:20px">No subjects. Create and save one in the Lab.</div>';return;}
-  grid.innerHTML=G.roster.map((s,i)=>{const st=STAGES[s.stage]||STAGES[0];
-    return`<div class="rc${G.selectedRosterIdx===i?' sel':''}" onclick="selectRoster(${i})">
-      <div class="rc-name">${s.name}</div>
-      <div style="font-family:var(--mono);font-size:9px;color:${st.color};margin-bottom:6px">${st.label} · INSTAB: ${s.instability}%</div>
-      <div style="font-family:var(--mono);font-size:8px;color:var(--dim);margin-bottom:8px">${s.genes.length} mutations · ${s.combos.length} combos</div>
-      <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px">${s.genes.map(g=>{const m=getMut(g);return m?`<span style="font-family:var(--mono);font-size:9px;padding:1px 5px;border:1px solid var(--border);color:var(--dim)">${m.icon}</span>`:''}).join('')}</div>
-      <div style="font-family:var(--mono);font-size:9px;color:var(--text2)">HP:${s.stats.hp} ATK:${s.stats.atk} DEF:${s.stats.def} SPD:${s.stats.spd}</div>
-      ${s.combos.length?`<div style="font-family:var(--mono);font-size:8px;color:var(--yellow);margin-top:5px">⚡ ${s.combos.map(c=>c.name).join(' · ')}</div>`:''}
-    </div>`;
-  }).join('');
-}
-
-function selectRoster(i){G.selectedRosterIdx=i;renderRoster();renderBattleInfo();}
-function renderBattleInfo(){
-  const info=document.getElementById('battleSubjectInfo');
-  if(G.selectedRosterIdx===null){info.textContent='Select subject from Roster tab, then return here to deploy.';return;}
-  const s=G.roster[G.selectedRosterIdx];
-  info.innerHTML=`SELECTED: <span style="color:var(--green)">${s.name}</span> | ${s.genes.length} mutations | ${s.combos.length} combos | HP: ${s.stats.hp} | INSTAB: ${s.instability}%`;
-}
-
-function renderCodex(){
-  document.getElementById('codexGrid').innerHTML=MUTATIONS.map(m=>{const tc=tierColor(m.tier);
-    return`<div class="mut-card" style="cursor:default">
-      <div class="mc-top"><div class="mc-name" style="color:var(--text2)">${m.icon} ${m.name}</div><div class="mc-tier" style="border-color:${tc};color:${tc}">${TIERS[m.tier]}</div></div>
-      <div class="mc-cat" style="color:${catColor(m.cat)}">${m.cat.toUpperCase()} · ${m.organ.toUpperCase()}</div>
-      <div class="mc-sci">${m.sci}</div>
-      <div class="mc-effects">${m.pros.map(p=>`<span class="eff pos">${p}</span>`).join('')}${m.cons.map(c=>`<span class="eff neg">${c}</span>`).join('')}</div>
-      <div class="mc-res">
-        <span class="res-pill">INSTAB +${m.instab}</span><span class="res-pill">CANCER +${m.cancerRisk}%</span>
-        ${m.req&&m.req.length?`<span class="res-pill" style="color:var(--orange)">REQ: ${m.req.map(r=>(getMut(r)||{}).name||r).join(', ')}</span>`:''}
-        ${m.conflicts&&m.conflicts.length?`<span class="res-pill" style="color:var(--red)">CONFLICTS: ${m.conflicts.map(r=>(getMut(r)||{}).name||r).join(', ')}</span>`:''}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ═══════════════════════════════════════════════════════
-//  BATTLE
-// ═══════════════════════════════════════════════════════
-function populateSelects(){
-  document.getElementById('enemySelect').innerHTML='<option value="">— SELECT ENEMY —</option>'+ENEMIES.map(e=>`<option value="${e.id}">[${e.faction}] ${e.name}</option>`).join('');
-  document.getElementById('envSelect').innerHTML=ENVIRONMENTS.map(e=>`<option value="${e.id}">${e.icon} ${e.name}</option>`).join('');
-}
-
-function calcDmg(base,def){return Math.max(1,Math.round(base*(0.8+Math.random()*0.4)*(1-(def/200))));}
-
-function buildAbilities(subject){
-  const abs=[{name:'BASIC STRIKE',dmg:subject.stats.atk,stam:8,desc:'Standard strike'}];
-  if(subject.genes.includes('venom_glands'))abs.push({name:'VENOM STRIKE',dmg:25,poison:15,stam:15,desc:'25 dmg + 15/turn poison'});
-  if(subject.genes.includes('acid_saliva'))abs.push({name:'ACID SPIT',dmg:35,armorPierce:25,stam:20,desc:'35 dmg + corrode -25% DEF'});
-  if(subject.genes.includes('neurotoxin_glands'))abs.push({name:'NEUROTOXIN',dmg:20,stun:true,stam:25,desc:'20 dmg + stun'});
-  if(subject.genes.includes('thermogenic'))abs.push({name:'HEAT BURST',dmg:30,burning:10,stam:20,desc:'30 dmg + 10/turn burning'});
-  if(subject.genes.includes('explosive_sweat'))abs.push({name:'DETONATE',dmg:80,selfDmg:30,stam:60,desc:'80 dmg, 30 self-damage'});
-  if(subject.genes.includes('regen_marrow'))abs.push({name:'REGEN BURST',dmg:0,heal:35,stam:30,desc:'Heal 35 HP instantly'});
-  if(subject.genes.includes('bone_spurs'))abs.push({name:'SPIKE TACKLE',dmg:40,stam:18,desc:'Bone spike charge — 40 dmg'});
-  if(subject.genes.includes('adrenal_overdrive'))abs.push({name:'ADRENAL SURGE',dmg:60,selfBerserk:true,stam:50,desc:'60 dmg, enter BERSERK'});
-  if(subject.genes.includes('cryo_adapt'))abs.push({name:'CRYOSTASIS',dmg:0,selfDef:80,stam:35,desc:'80% dmg reduction this turn'});
-  subject.combos.forEach(c=>{if(c.ability)abs.push({...c.ability,isCombo:true,comboName:c.name});});
-  return abs;
-}
-
-function startBattle(){
-  const eid=document.getElementById('enemySelect').value;
-  if(!eid){pushNotif('Select an enemy!','warn');return;}
-  if(G.selectedRosterIdx===null){pushNotif('Select a subject from Roster!','warn');return;}
-  const sub=G.roster[G.selectedRosterIdx];
-  const enemy=ENEMIES.find(e=>e.id===eid);
-  const env=ENVIRONMENTS.find(e=>e.id===document.getElementById('envSelect').value)||ENVIRONMENTS[0];
-  const pMod={def:0,spd:0,dodge:0};let pInstabGain=0;const envMsgs=[];let envAura=0;
-  env.effects.forEach(ef=>{
-    const applies=!ef.check||ef.check(sub);if(!applies)return;
-    if(ef.buffDef)pMod.def+=ef.buffDef;if(ef.buffDodge)pMod.dodge+=ef.buffDodge;
-    if(ef.statDrain)for(const[k,v]of Object.entries(ef.statDrain))pMod[k]=(pMod[k]||0)-v;
-    if(ef.instabGain)pInstabGain=ef.instabGain;if(ef.aura)envAura+=ef.aura;
-    envMsgs.push(ef.label);
-  });
-  const pStats={...sub.stats};for(const[k,v]of Object.entries(pMod))pStats[k]=(pStats[k]||0)+v;
-  G.battle={
-    active:true,sub,enemy,env,
-    pHP:pStats.hp,pMaxHP:pStats.hp,eHP:enemy.stats.hp,eMaxHP:enemy.stats.hp,
-    pStam:pStats.stam||100,pMaxStam:pStats.stam||100,
-    eStam:enemy.stats.stam||150,pHun:100,
-    pStats,eStats:{...enemy.stats},round:1,
-    pStatus:[],eStatus:[],pPoison:0,ePoison:0,
-    pAura:(pStats.aura||0)+Math.min(0,envAura),eAura:enemy.stats.aura||0,
-    pPhaseDodge:false,ePhaseDodge:false,pArmorStrip:0,eArmorStrip:0,
-    pInstab:sub.instability,pInstabGain,envMsgs,abilities:buildAbilities(sub),
-    pDefStance:0,eDefStance:0,eBurning:0,
-  };
-  document.getElementById('battleArea').style.display='grid';
-  document.getElementById('battleBottom').style.display='grid';
-  document.getElementById('pName').textContent=sub.name;
-  document.getElementById('eName').textContent=enemy.name;
-  document.getElementById('eMutTags').textContent='MUTATIONS: '+enemy.muts.map(m=>(getMut(m)||{}).name||m).join(' · ');
-  document.getElementById('envLabel').textContent=env.icon+' '+env.name;
-  G.BL=document.getElementById('battleLog');G.BL.innerHTML='';
-  const ep=document.getElementById('envPane');
-  ep.innerHTML=`<div style="font-family:var(--mono);font-size:9px;color:var(--cyan);letter-spacing:2px;margin-bottom:8px">ENVIRONMENT</div>
-    <div class="env-card"><div class="env-name">${env.icon} ${env.name}</div><div class="env-desc">${env.desc}</div>
-    <div style="margin-top:8px">${envMsgs.map(m=>`<div style="font-family:var(--mono);font-size:8px;color:var(--orange)">▸ ${m}</div>`).join('')}</div></div>
-    <div style="font-family:var(--mono);font-size:9px;color:var(--cyan);letter-spacing:2px;margin:12px 0 6px">ACTIVE COMBOS</div>
-    ${sub.combos.map(c=>`<div class="env-card" style="border-color:var(--yellow);margin-bottom:6px"><div class="env-name" style="color:var(--yellow)">${c.name}</div><div class="env-desc">${c.ability?c.ability.desc:''}</div></div>`).join('')}`;
-  renderPAbilities();
-  blog(`// BATTLE: ${sub.name} VS ${enemy.name} | ${env.name} //`,'sys');
-  envMsgs.forEach(m=>blog('ENV: '+m,'sys'));
-  updateBattleUI();
-}
-
-function renderPAbilities(){
-  const b=G.battle;
-  document.getElementById('pAbilities').innerHTML=b.abilities.map((a,i)=>
-    `<button class="ab-btn${a.isCombo?' combo':''}" onclick="playerAct(${i})">
-      <span>${a.isCombo?'⚡ ':''}"${a.name}"${a.isCombo?` (${a.comboName})`:''}</span>
-      <span class="ab-cost">${a.dmg?a.dmg+'dmg':''}${a.heal?'+'+a.heal+'hp':''}${(a.selfDef&&!a.dmg&&!a.heal)?a.selfDef+'%def':''} [${a.stam||0}STA]</span>
-    </button>`).join('');
-}
-
-function playerAct(idx){
-  const b=G.battle;if(!b||!b.active)return;
-  if(b.pStatus.includes('stunned')){blog(b.sub.name+' is STUNNED!','p');b.pStatus=b.pStatus.filter(s=>s!=='stunned');afterPlayer();return;}
-  const ab=b.abilities[idx];
-  if((ab.stam||0)>b.pStam){pushNotif('Insufficient STAMINA!','warn');return;}
-  b.pStam-=(ab.stam||0);b.pHun=Math.max(0,b.pHun-(ab.stam||0)*0.3);
-  b.pPhaseDodge=false;b.pDefStance=0;
-  if(ab.phaseDodge){b.pPhaseDodge=true;blog(b.sub.name+' enters PHASE PREDICT — next attack DODGED + COUNTERED!','p');}
-  else if(ab.selfDef&&!ab.dmg&&!ab.heal){b.pDefStance=ab.selfDef;blog(b.sub.name+' uses '+ab.name+' — DEFENSE '+ab.selfDef+'%','p');}
-  else if(ab.heal){const h=Math.min(ab.heal,b.pMaxHP-b.pHP);b.pHP+=h;blog(b.sub.name+' '+ab.name+' — HEALED '+h+' HP!','p');}
-  else{
-    const eDodge=b.ePhaseDodge?100:(b.eStats.dodge||0);
-    b.ePhaseDodge=false;
-    if(Math.random()*100<eDodge){blog(b.enemy.name+' DODGES '+ab.name+'!','e');}
-    else{
-      const isCrit=Math.random()<0.12;
-      let def=Math.max(0,(b.eStats.def||10)-(b.eArmorStrip||0));
-      let dmg=calcDmg(ab.dmg*(ab.multiHit?1:1)*(isCrit?1.85:1),def);
-      if(ab.bypass)dmg=Math.round(dmg*1.5);
-      if(ab.multiHit){let tot=0;for(let h=0;h<ab.multiHit;h++)tot+=calcDmg(ab.dmg*(isCrit?1.85:1),def);dmg=tot;b.eHP-=tot;blog(b.sub.name+' '+ab.name+' — MULTI HIT '+tot+' total dmg!',isCrit?'crit':'p');}
-      else{b.eHP-=dmg;blog(isCrit?'CRITICAL HIT! '+b.sub.name+' '+ab.name+': '+dmg+' dmg!':b.sub.name+' '+ab.name+' — '+dmg+' dmg.',isCrit?'crit':'p');}
-      if(ab.armorPierce){b.eArmorStrip+=ab.armorPierce;blog('Armor corroded! Enemy DEF -'+ab.armorPierce,'combo');}
-      if(ab.poison){b.ePoison=(b.ePoison||0)+ab.poison;blog(b.enemy.name+' POISONED: +'+ab.poison+'/turn','combo');}
-      if(ab.burning){b.eBurning=(b.eBurning||0)+ab.burning;blog(b.enemy.name+' BURNING: +'+ab.burning+'/turn','combo');}
-      if(ab.stun&&Math.random()<0.6){b.eStatus.push('stunned');blog(b.enemy.name+' STUNNED!','combo');}
-      if(ab.selfDmg){b.pHP-=ab.selfDmg;blog(b.sub.name+' self-damage: '+ab.selfDmg,'p');}
-      if(ab.selfBerserk){b.pStatus.push('berserk');blog(b.sub.name+' enters BERSERK STATE!','combo');}
-    }
-  }
-  if(b.pStats.regen){const r=Math.min(b.pStats.regen,b.pMaxHP-b.pHP);b.pHP+=r;if(r>0)blog(b.sub.name+' REGEN +'+r+' HP','p');}
-  if(b.pInstabGain){b.pInstab=Math.min(100,b.pInstab+b.pInstabGain);}
-  if(b.pInstab>80&&Math.random()<0.15){blog('⚠ INSTABILITY: MUTATION REJECTION — '+b.sub.name+' takes 20 dmg!','fail');b.pHP-=20;}
-  if(b.eHP<=0){endBattle(true);return;}
-  if(b.pHP<=0){endBattle(false);return;}
-  afterPlayer();
-}
-
-function afterPlayer(){setTimeout(()=>enemyTurn(),650);}
-
-function enemyTurn(){
-  const b=G.battle;if(!b||!b.active)return;
-  if(b.pPoison>0){b.pHP-=b.pPoison;blog(b.sub.name+' POISON -'+b.pPoison+' HP','e');}
-  if(b.ePoison>0){b.eHP-=b.ePoison;blog(b.enemy.name+' POISON -'+b.ePoison+' HP','p');}
-  if(b.eBurning>0){b.eHP-=b.eBurning;blog(b.enemy.name+' BURNING -'+b.eBurning+' HP','p');}
-  if(b.eAura>0){b.pHP-=b.eAura;blog(b.enemy.name+' AURA -'+b.eAura+' to '+b.sub.name,'e');}
-  if(b.pAura<0){b.pHP+=b.pAura;blog('ENV effect: '+b.pAura+' HP from environment','fail');}
-  if(b.eHP<=0){endBattle(true);return;}if(b.pHP<=0){endBattle(false);return;}
-  if(b.eStatus.includes('stunned')){blog(b.enemy.name+' is STUNNED!','e');b.eStatus=b.eStatus.filter(s=>s!=='stunned');}
-  else{
-    const ab=b.enemy.abilities[Math.floor(Math.random()*b.enemy.abilities.length)];
-    if(ab.selfDef||ab.heal){
-      blog(b.enemy.name+' uses '+ab.name+' — defensive!','e');b.eDefStance=ab.selfDef||0;
-      if(ab.heal){const h=Math.min(ab.heal,b.eMaxHP-b.eHP);b.eHP+=h;blog(b.enemy.name+' REGEN +'+h+' HP','e');}
-    }else{
-      const pDodge=b.pPhaseDodge?100:Math.min(90,(b.pStats.dodge||0)+(b.pHun<20?-15:0));
-      if(Math.random()*100<pDodge){
-        blog(b.sub.name+' DODGES '+b.enemy.name+' '+ab.name+'!','p');
-        if(b.pPhaseDodge){const c=calcDmg(b.pStats.atk,b.eStats.def-(b.eArmorStrip||0));b.eHP-=c;blog('COUNTER-ATTACK: '+b.sub.name+' retaliates '+c+' dmg!','crit');}
-        b.pPhaseDodge=false;
-      }else{
-        b.pPhaseDodge=false;
-        const defMult=b.pDefStance?1-b.pDefStance/100:1;b.pDefStance=0;
-        const isCrit=Math.random()<0.09;
-        let def=Math.max(0,(b.pStats.def||10)-(b.pArmorStrip||0));def=Math.max(0,def*defMult);
-        if(ab.multiHit){let tot=0;for(let h=0;h<ab.multiHit;h++)tot+=calcDmg(ab.dmg*(isCrit?1.8:1),def);b.pHP-=tot;blog(b.enemy.name+' '+ab.name+' MULTI HIT '+tot+' total!',isCrit?'crit':'e');}
-        else{let dmg=calcDmg(ab.dmg*(isCrit?1.8:1),def);if(ab.bypass)dmg=Math.round(dmg*1.4);b.pHP-=dmg;blog(isCrit?'CRITICAL! '+b.enemy.name+' '+ab.name+': '+dmg+'!':b.enemy.name+' '+ab.name+' — '+dmg+' dmg.',isCrit?'crit':'e');}
-        if(ab.stealHp){const s=Math.min(ab.stealHp,b.eMaxHP-b.eHP);b.eHP+=s;blog(b.enemy.name+' DRAINS '+s+' HP!','e');}
-        if(ab.poison){b.pPoison=(b.pPoison||0)+ab.poison;blog(b.sub.name+' POISONED!','e');}
-        if(ab.stun&&Math.random()<0.5){b.pStatus.push('stunned');blog(b.sub.name+' STUNNED!','e');}
-      }
-    }
-  }
-  if(b.eStats.regen){const r=Math.min(b.eStats.regen,b.eMaxHP-b.eHP);b.eHP+=r;}
-  b.round++;document.getElementById('roundTxt').textContent='ROUND '+b.round;
-  if(b.pHP<=0){endBattle(false);return;}if(b.eHP<=0){endBattle(true);return;}
-  updateBattleUI();
-}
-
-function endBattle(win){
-  const b=G.battle;b.active=false;b.pHP=Math.max(0,b.pHP);b.eHP=Math.max(0,b.eHP);updateBattleUI();
-  document.querySelectorAll('#pAbilities button').forEach(bt=>bt.disabled=true);
-  if(win){blog('// VICTORY — '+b.sub.name+' DEFEATS '+b.enemy.name+' //','combo');pushNotif('VICTORY! +6 BIOMASS awarded','ok');G.biomass+=6;renderHdr();}
-  else{blog('// DEFEAT — '+b.sub.name+' HAS FALLEN //','e');pushNotif('DEFEAT. Subject lost.','bad');}
-}
-
-function resetBattle(){if(G.battle)G.battle.active=false;G.battle=null;document.getElementById('battleArea').style.display='none';document.getElementById('battleBottom').style.display='none';document.getElementById('battleLog').innerHTML='<div class="blog-entry sys">// COMBAT SYSTEMS ONLINE //</div>';}
-
-function updateBattleUI(){
-  const b=G.battle;if(!b)return;
-  const pp=Math.max(0,b.pHP/b.pMaxHP*100),ep=Math.max(0,b.eHP/b.eMaxHP*100);
-  const sp=Math.max(0,b.pStam/b.pMaxStam*100);
-  document.getElementById('pHpBar').style.width=pp+'%';document.getElementById('eHpBar').style.width=ep+'%';
-  document.getElementById('pStamBar').style.width=sp+'%';
-  document.getElementById('pHunBar').style.width=b.pHun+'%';
-  document.getElementById('pHpTxt').textContent=Math.max(0,Math.round(b.pHP))+'/'+b.pMaxHP;
-  document.getElementById('eHpTxt').textContent=Math.max(0,Math.round(b.eHP))+'/'+b.eMaxHP;
-  document.getElementById('pStamTxt').textContent=Math.max(0,Math.round(b.pStam));
-  document.getElementById('eStamTxt').textContent=Math.max(0,Math.round(b.eStam));
-  document.getElementById('pHunTxt').textContent=Math.round(b.pHun)+'%';
-  document.getElementById('pStatus').innerHTML=[
-    b.pPoison>0?`<span class="stag poison">☠ POISON ${b.pPoison}/t</span>`:'',
-    b.pStatus.includes('stunned')?'<span class="stag stun">⚡ STUNNED</span>':'',
-    b.pStatus.includes('berserk')?'<span class="stag berserk">🔴 BERSERK</span>':'',
-    b.pPhaseDodge?'<span class="stag phase">◈ PHASE DODGE</span>':'',
-    b.pHun<20?'<span class="stag hunger">⚠ STARVING</span>':'',
-    b.pInstab>70?`<span class="stag instab">☢ UNSTABLE ${Math.round(b.pInstab)}%</span>`:'',
-  ].join('');
-  document.getElementById('eStatus').innerHTML=[
-    b.ePoison>0?`<span class="stag poison">☠ POISON ${b.ePoison}/t</span>`:'',
-    b.eStatus.includes('stunned')?'<span class="stag stun">⚡ STUNNED</span>':'',
-    b.eBurning>0?`<span class="stag burning">🔥 BURN ${b.eBurning}/t</span>`:'',
-    b.eArmorStrip>0?`<span class="stag instab">ARMOR -${b.eArmorStrip}</span>`:'',
-  ].join('');
-}
-
-function blog(msg,type='sys'){if(!G.BL)return;const d=document.createElement('div');d.className='blog-entry '+type;d.textContent=`[R${G.battle?G.battle.round:1}] ${msg}`;G.BL.appendChild(d);G.BL.scrollTop=G.BL.scrollHeight;}
-
-function switchTab(tab,btn){
-  document.getElementById('tab-lab').style.display='none';
-  ['battle','roster','codex'].forEach(t=>document.getElementById('tab-'+t).classList.remove('on'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
-  if(tab==='lab'){
-    document.getElementById('tab-lab').style.display='flex';
-    // Ensure at least one pane is visible on mobile
-    const anyActive=document.querySelector('.pane.mob-active');
-    if(!anyActive){const first=document.getElementById('lab-pane-body');if(first)first.classList.add('mob-active');}
-  }
-  else document.getElementById('tab-'+tab).classList.add('on');
-  btn.classList.add('on');
-  if(tab==='roster')renderRoster();if(tab==='codex')renderCodex();if(tab==='battle')renderBattleInfo();
-}
-
-function switchLabPane(pane,btn){
-  const map={body:'lab-pane-body',mutations:'lab-pane-mutations',biology:'lab-pane-biology'};
-  Object.values(map).forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('mob-active');});
-  document.querySelectorAll('.mob-pane-btn').forEach(b=>b.classList.remove('on'));
-  const target=document.getElementById(map[pane]);
-  if(target)target.classList.add('mob-active');
-  if(btn)btn.classList.add('on');
-}
-
-// INIT
-populateSelects();renderAll();renderBattleInfo();
-</script>
-</body>
-</html>
+    {t:'ORGAN CASCADE FAILURE',b:'CRIT
