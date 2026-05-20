@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MUTAGEN II — Biological Warfare Lab</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Jost:wght@200;400;600;700&family=Bebas+Neue&display=swap');
+:root {
+  --bg:#07080a;--bg2:#090c0f;--panel:#0c1018;--panel2:#0f1420;
+  --border:#1c2535;--border2:#2a3a55;
+  --green:#3dff8f;--red:#ff3a3a;--orange:#ff7c22;--yellow:#f5d000;
+  --cyan:#1fd8e8;--blue:#3a7fff;--purple:#b044ff;--teal:#00d4a0;
+  --dim:#2a3d55;--text:#8aa8cc;--text2:#c8dff5;--text3:#e8f2ff;
+  --mono:'Share Tech Mono',monospace;--display:'Bebas Neue',sans-serif;--body:'Jost',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:14px;overflow-x:hidden;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:linear-gradient(rgba(29,200,230,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(29,200,230,0.025) 1px,transparent 1px);background-size:32px 32px;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);}
+#root{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh;}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;border-bottom:1px solid var(--border);background:rgba(7,8,10,0.95);position:sticky;top:0;z-index:100;}
+.hdr-logo{font-family:var(--display);font-size:32px;letter-spacing:6px;color:var(--green);text-shadow:0 0 20px rgba(61,255,143,0.4);}
+.hdr-sub{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:3px;margin-top:-2px;}
+.hdr-tabs{display:flex;gap:2px;}
+.tab-btn{font-family:var(--mono);font-size:10px;letter-spacing:2px;padding:8px 18px;background:transparent;border:1px solid var(--border);color:var(--dim);cursor:pointer;transition:all 0.15s;}
+.tab-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.tab-btn.on{border-color:var(--green);color:var(--green);background:rgba(61,255,143,0.06);}
+.hdr-right{font-family:var(--mono);font-size:11px;color:var(--yellow);letter-spacing:1px;text-align:right;}
+.layout{display:grid;grid-template-columns:260px 1fr 300px;gap:0;flex:1;}
+.pane{border-right:1px solid var(--border);overflow-y:auto;height:calc(100vh - 57px);}
+.pane:last-child{border-right:none;}
+.pane-title{font-family:var(--display);font-size:18px;letter-spacing:3px;color:var(--cyan);padding:14px 16px 10px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--panel);z-index:10;display:flex;align-items:center;gap:8px;}
+.pane-title-badge{font-family:var(--mono);font-size:9px;color:var(--dim);}
+.body-diagram-wrap{padding:16px;display:flex;flex-direction:column;align-items:center;gap:12px;}
+.mutant-svg-wrap{width:160px;height:280px;position:relative;filter:drop-shadow(0 0 12px rgba(61,255,143,0.2));}
+.mutant-svg-wrap svg{width:100%;height:100%;}
+.organ-btn{position:absolute;cursor:pointer;border:1px solid rgba(61,255,143,0.3);border-radius:50%;background:rgba(61,255,143,0.04);transition:all 0.2s;display:flex;align-items:center;justify-content:center;}
+.organ-btn:hover{border-color:var(--green);background:rgba(61,255,143,0.12);box-shadow:0 0 10px rgba(61,255,143,0.2);}
+.organ-btn.selected{border-color:var(--yellow);background:rgba(245,208,0,0.1);box-shadow:0 0 12px rgba(245,208,0,0.3);}
+.organ-btn.has-mutation{border-color:var(--cyan);background:rgba(29,216,232,0.08);}
+.organ-btn.unstable{border-color:var(--red)!important;background:rgba(255,58,58,0.1)!important;animation:pulse-red 1s ease-in-out infinite;}
+@keyframes pulse-red{0%,100%{box-shadow:0 0 6px rgba(255,58,58,0.3)}50%{box-shadow:0 0 16px rgba(255,58,58,0.7)}}
+.bio-stats{width:100%;padding:0 14px;display:flex;flex-direction:column;gap:5px;}
+.bstat{display:flex;align-items:center;gap:6px;}
+.bstat-name{font-family:var(--mono);font-size:8px;color:var(--dim);width:76px;letter-spacing:0.5px;}
+.bstat-track{flex:1;height:4px;background:rgba(0,0,0,0.5);border:1px solid var(--border);overflow:hidden;}
+.bstat-fill{height:100%;transition:width 0.5s ease;}
+.bstat-val{font-family:var(--mono);font-size:8px;color:var(--text2);width:28px;text-align:right;}
+.mut-browser{display:flex;flex-direction:column;}
+.mut-filter-bar{display:flex;gap:4px;padding:10px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.filter-btn{font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:4px 10px;border:1px solid var(--border);background:transparent;color:var(--dim);cursor:pointer;transition:all 0.15s;}
+.filter-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.filter-btn.on{background:rgba(29,216,232,0.1);border-color:var(--cyan);color:var(--cyan);}
+.mut-list{padding:8px;display:flex;flex-direction:column;gap:6px;}
+.mut-card{border:1px solid var(--border);padding:10px 12px;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;}
+.mut-card:hover{border-color:var(--cyan);background:rgba(29,216,232,0.03);}
+.mut-card.equipped{border-color:var(--green);background:rgba(61,255,143,0.04);}
+.mut-card.incompatible{opacity:0.35;cursor:not-allowed;}
+.mut-card.incompatible::after{content:'INCOMPATIBLE';position:absolute;top:4px;right:4px;font-family:var(--mono);font-size:7px;color:var(--red);letter-spacing:1px;}
+.mut-card.locked::after{content:'LOCKED';position:absolute;top:4px;right:4px;font-family:var(--mono);font-size:7px;color:var(--dim);letter-spacing:1px;}
+.mc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;}
+.mc-name{font-family:var(--display);font-size:15px;letter-spacing:2px;}
+.mc-tier{font-family:var(--mono);font-size:8px;padding:2px 6px;border:1px solid;letter-spacing:1px;}
+.mc-cat{font-family:var(--mono);font-size:9px;color:var(--dim);margin-bottom:4px;letter-spacing:1px;}
+.mc-sci{font-family:var(--mono);font-size:9px;color:var(--text);line-height:1.5;margin-bottom:6px;}
+.mc-effects{display:flex;flex-wrap:wrap;gap:3px;}
+.eff{font-family:var(--mono);font-size:8px;padding:2px 5px;border:1px solid;}
+.eff.pos{border-color:var(--green);color:var(--green);}
+.eff.neg{border-color:var(--red);color:var(--red);}
+.eff.warn{border-color:var(--orange);color:var(--orange);}
+.mc-res{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
+.res-pill{font-family:var(--mono);font-size:8px;padding:2px 6px;background:rgba(0,0,0,0.4);border:1px solid var(--border);color:var(--text);}
+.right-panel{display:flex;flex-direction:column;gap:0;}
+.rp-section{border-bottom:1px solid var(--border);padding:14px;}
+.rp-title{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--cyan);margin-bottom:10px;}
+.instab-bar-bg{height:16px;background:rgba(0,0,0,0.5);border:1px solid var(--border);overflow:hidden;position:relative;}
+.instab-bar-fill{height:100%;transition:width 0.5s;position:relative;}
+.active-mut-list{display:flex;flex-direction:column;gap:4px;max-height:180px;overflow-y:auto;}
+.am-row{display:flex;align-items:center;justify-content:space-between;padding:5px 8px;border:1px solid var(--border);}
+.am-name{font-family:var(--mono);font-size:9px;color:var(--text2);}
+.am-remove{font-family:var(--mono);font-size:9px;color:var(--red);cursor:pointer;border:none;background:none;padding:0 4px;}
+.am-remove:hover{color:var(--orange);}
+.event-log{max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;}
+.ev{font-family:var(--mono);font-size:9px;padding:3px 6px;border-left:2px solid;line-height:1.5;}
+.ev.info{border-color:var(--cyan);color:var(--text);}
+.ev.warn{border-color:var(--orange);color:var(--orange);}
+.ev.danger{border-color:var(--red);color:var(--red);}
+.ev.success{border-color:var(--green);color:var(--green);}
+.ev.combo{border-color:var(--yellow);color:var(--yellow);}
+.combo-unlocked{display:flex;flex-direction:column;gap:6px;}
+.cu-card{border:1px solid var(--yellow);padding:8px 10px;background:rgba(245,208,0,0.05);animation:combo-appear 0.4s ease;}
+@keyframes combo-appear{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}
+.cu-name{font-family:var(--display);font-size:14px;letter-spacing:2px;color:var(--yellow);margin-bottom:2px;}
+.cu-desc{font-family:var(--mono);font-size:8px;color:var(--text);line-height:1.5;}
+.battle-screen{display:none;flex-direction:column;gap:0;height:calc(100vh - 57px);overflow-y:auto;}
+.battle-screen.on{display:flex;}
+.battle-top{display:grid;grid-template-columns:1fr 100px 1fr;gap:16px;padding:20px;border-bottom:1px solid var(--border);}
+.bf-card{border:1px solid var(--border);padding:16px;}
+.bf-card.player{border-top:2px solid var(--green);}
+.bf-card.enemy{border-top:2px solid var(--red);}
+.bf-name{font-family:var(--display);font-size:22px;letter-spacing:3px;margin-bottom:10px;}
+.player .bf-name{color:var(--green);}
+.enemy .bf-name{color:var(--red);}
+.hp-row{margin-bottom:8px;}
+.hp-label-row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--dim);margin-bottom:3px;}
+.hp-track{height:10px;background:rgba(0,0,0,0.6);border:1px solid var(--border);overflow:hidden;}
+.hp-fill{height:100%;transition:width 0.5s ease;}
+.hp-fill.p{background:linear-gradient(90deg,#00aa44,var(--green));}
+.hp-fill.e{background:linear-gradient(90deg,#aa1111,var(--red));}
+.stam-fill{background:linear-gradient(90deg,#aa5500,var(--orange));}
+.hun-fill{background:linear-gradient(90deg,#776600,var(--yellow));}
+.status-tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:6px;min-height:18px;}
+.stag{font-family:var(--mono);font-size:8px;padding:1px 5px;border:1px solid;}
+.stag.poison{border-color:#44ff44;color:#44ff44;}
+.stag.stun{border-color:var(--yellow);color:var(--yellow);}
+.stag.burning{border-color:var(--orange);color:var(--orange);}
+.stag.phase{border-color:var(--blue);color:var(--blue);}
+.stag.berserk{border-color:var(--red);color:var(--red);}
+.stag.instab{border-color:var(--purple);color:var(--purple);}
+.stag.hunger{border-color:var(--orange);color:var(--orange);}
+.vs-col{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
+.vs-txt{font-family:var(--display);font-size:40px;color:var(--orange);letter-spacing:4px;text-shadow:0 0 20px rgba(255,124,34,0.5);}
+.round-txt{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:2px;}
+.ability-grid{display:flex;flex-direction:column;gap:4px;margin-top:10px;}
+.ab-btn{font-family:var(--mono);font-size:9px;padding:7px 10px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;transition:all 0.15s;text-align:left;display:flex;justify-content:space-between;letter-spacing:0.5px;}
+.ab-btn:hover:not(:disabled){border-color:var(--green);color:var(--green);background:rgba(61,255,143,0.04);}
+.ab-btn:disabled{opacity:0.3;cursor:not-allowed;}
+.ab-btn.combo{border-color:var(--yellow);color:var(--yellow);}
+.ab-btn.combo:hover:not(:disabled){background:rgba(245,208,0,0.08);}
+.ab-cost{font-size:8px;color:var(--orange);}
+.battle-bottom{display:grid;grid-template-columns:1fr 1fr;gap:0;flex:1;border-top:1px solid var(--border);overflow:hidden;}
+.battle-log-pane{padding:12px;overflow-y:auto;border-right:1px solid var(--border);}
+.battle-env-pane{padding:12px;overflow-y:auto;}
+.blog-entry{font-family:var(--mono);font-size:9px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.03);line-height:1.6;}
+.blog-entry.p{color:var(--green);}
+.blog-entry.e{color:var(--red);}
+.blog-entry.sys{color:var(--cyan);}
+.blog-entry.crit{color:var(--orange);font-weight:bold;}
+.blog-entry.combo{color:var(--yellow);}
+.blog-entry.fail{color:var(--purple);}
+.env-card{border:1px solid var(--border);padding:10px;margin-bottom:8px;}
+.env-name{font-family:var(--display);font-size:14px;letter-spacing:2px;color:var(--orange);margin-bottom:4px;}
+.env-desc{font-family:var(--mono);font-size:9px;color:var(--text);line-height:1.5;}
+.btn{font-family:var(--mono);font-size:10px;letter-spacing:2px;padding:10px 20px;border:1px solid;background:transparent;cursor:pointer;transition:all 0.15s;}
+.btn-g{border-color:var(--green);color:var(--green);}
+.btn-g:hover{background:rgba(61,255,143,0.1);box-shadow:0 0 12px rgba(61,255,143,0.2);}
+.btn-r{border-color:var(--red);color:var(--red);}
+.btn-r:hover{background:rgba(255,58,58,0.1);}
+.btn-c{border-color:var(--cyan);color:var(--cyan);}
+.btn-c:hover{background:rgba(29,216,232,0.1);}
+.full-screen{display:none;padding:20px;}
+.full-screen.on{display:block;}
+.codex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-top:12px;}
+.roster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:12px;}
+.rc{border:1px solid var(--border);padding:14px;cursor:pointer;transition:all 0.15s;}
+.rc:hover{border-color:var(--cyan);}
+.rc.sel{border-color:var(--green);background:rgba(61,255,143,0.04);}
+.rc-name{font-family:var(--display);font-size:18px;letter-spacing:2px;color:var(--text2);margin-bottom:6px;}
+.notif-stack{position:fixed;top:16px;right:16px;z-index:9000;display:flex;flex-direction:column;gap:6px;pointer-events:none;}
+.notif{font-family:var(--mono);font-size:10px;padding:10px 16px;border:1px solid;max-width:280px;animation:nslide 0.3s ease;pointer-events:auto;}
+@keyframes nslide{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+.notif.ok{border-color:var(--green);color:var(--green);background:rgba(61,255,143,0.07);}
+.notif.bad{border-color:var(--red);color:var(--red);background:rgba(255,58,58,0.07);}
+.notif.warn{border-color:var(--orange);color:var(--orange);background:rgba(255,124,34,0.07);}
+.notif.combo{border-color:var(--yellow);color:var(--yellow);background:rgba(245,208,0,0.07);}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+#tip{position:fixed;z-index:8000;pointer-events:none;display:none;background:var(--panel2);border:1px solid var(--border2);padding:12px;max-width:260px;box-shadow:0 4px 20px rgba(0,0,0,0.7);}
+.tip-name{font-family:var(--display);font-size:16px;letter-spacing:2px;color:var(--cyan);margin-bottom:5px;}
+.tip-sci{font-family:var(--mono);font-size:8px;color:var(--text);line-height:1.6;margin-bottom:6px;}
+.tip-stats{font-family:var(--mono);font-size:8px;color:var(--text2);}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:5000;align-items:center;justify-content:center;}
+.modal-bg.on{display:flex;}
+.modal{background:var(--panel);border:1px solid var(--border2);padding:24px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto;}
+.modal-title{font-family:var(--display);font-size:24px;letter-spacing:4px;color:var(--red);margin-bottom:14px;}
+.modal-body{font-family:var(--mono);font-size:10px;color:var(--text);line-height:1.8;white-space:pre-wrap;}
+.modal-close{font-family:var(--mono);font-size:10px;margin-top:14px;cursor:pointer;color:var(--cyan);background:none;border:1px solid var(--cyan);padding:6px 14px;}
+
+/* ── MOBILE PANE NAV ── */
+.mob-pane-nav{display:none;background:var(--panel);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;}
+.mob-pane-btn{flex:1;font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:11px 4px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--dim);cursor:pointer;transition:all 0.15s;}
+.mob-pane-btn.on{color:var(--cyan);border-bottom-color:var(--cyan);}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  /* Header */
+  .hdr{padding:8px 12px;flex-wrap:wrap;gap:6px;}
+  .hdr-logo{font-size:22px;letter-spacing:3px;}
+  .hdr-sub{font-size:8px;letter-spacing:1px;}
+  .hdr-tabs{order:3;width:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;}
+  .tab-btn{padding:9px 4px;font-size:9px;letter-spacing:0.5px;text-align:center;}
+  .hdr-right{font-size:9px;letter-spacing:0;text-align:left;}
+
+  /* Lab layout → stacked panes */
+  .mob-pane-nav{display:flex;}
+  #tab-lab{flex-direction:column;}
+  .layout{display:flex;flex-direction:column;flex:1;}
+  .pane{height:auto;overflow-y:visible;border-right:none;border-bottom:1px solid var(--border);display:none;min-height:0;}
+  .pane.mob-active{display:block;}
+  .pane-title{font-size:15px;letter-spacing:2px;padding:12px 14px 8px;}
+
+  /* Body diagram — scale the whole wrap so absolute organ-btns scale too */
+  .body-diagram-wrap{padding:10px 12px;gap:10px;}
+  .mutant-svg-wrap{transform:scale(0.82);transform-origin:top center;margin-bottom:-50px;}
+
+  /* Mutation browser */
+  .mut-filter-bar{overflow-x:auto;flex-wrap:nowrap;padding:8px;-webkit-overflow-scrolling:touch;}
+  .filter-btn{white-space:nowrap;flex-shrink:0;padding:8px 12px;font-size:10px;}
+  .mc-name{font-size:14px;}
+  .mc-sci{font-size:10px;line-height:1.6;}
+  .mc-tier{font-size:9px;}
+  .eff{font-size:9px;padding:3px 7px;}
+  .res-pill{font-size:9px;padding:3px 7px;}
+
+  /* Right panel (Biology) */
+  .rp-section{padding:10px 12px;}
+  .rp-title{font-size:10px;letter-spacing:2px;margin-bottom:8px;}
+  .bstat-name{font-size:9px;width:88px;}
+  .bstat-val{font-size:9px;}
+  .active-mut-list{max-height:140px;}
+  .am-name{font-size:10px;}
+  .am-remove{font-size:12px;padding:2px 8px;}
+
+  /* Buttons — bigger touch targets */
+  .btn{padding:12px 18px;font-size:11px;}
+  .ab-btn{padding:12px 10px;font-size:10px;min-height:44px;}
+  .filter-btn{min-height:36px;}
+  .tab-btn{min-height:40px;}
+  .mob-pane-btn{min-height:44px;}
+
+  /* Bio stats bar */
+  .bstat-track{height:5px;}
+
+  /* Battle screen */
+  .battle-top{grid-template-columns:1fr;gap:8px;padding:12px;}
+  .battle-bottom{grid-template-columns:1fr;flex:1;}
+  .battle-log-pane{border-right:none;border-bottom:1px solid var(--border);max-height:220px;}
+  .battle-env-pane{max-height:180px;}
+  .vs-col{flex-direction:row;justify-content:center;padding:4px 0;gap:16px;}
+  .vs-txt{font-size:28px;}
+  .round-txt{font-size:10px;}
+  .bf-name{font-size:18px;letter-spacing:2px;}
+  .hp-label-row{font-size:10px;}
+  .stag{font-size:9px;padding:2px 7px;}
+  #tab-battle>div:first-child{flex-wrap:wrap;gap:8px;padding:10px 12px;}
+  #enemySelect,#envSelect{min-width:0;font-size:11px;padding:10px 10px;}
+  .blog-entry{font-size:10px;}
+
+  /* Full-screen tabs */
+  .full-screen{padding:12px;}
+  .codex-grid{grid-template-columns:1fr;}
+  .roster-grid{grid-template-columns:1fr;}
+  .rc{padding:12px;}
+  .rc-name{font-size:16px;}
+
+  /* Notif stack */
+  .notif-stack{top:auto;bottom:16px;right:8px;left:8px;}
+  .notif{max-width:100%;font-size:11px;}
+
+  /* Modal */
+  .modal{width:95%;padding:16px;}
+  .modal-title{font-size:20px;}
+  .modal-body{font-size:11px;}
+  .modal-close{font-size:11px;padding:10px 18px;}
+
+  /* Tooltip — disable on mobile (touch) */
+  #tip{display:none!important;}
+
+  /* Scrollbars thicker on mobile */
+  ::-webkit-scrollbar{width:6px;}
+  .mut-filter-bar::-webkit-scrollbar{height:3px;}
+}
+@media(max-width:400px){
+  .hdr-logo{font-size:19px;}
+  .tab-btn{font-size:8px;letter-spacing:0;}
+  .mob-pane-btn{font-size:9px;}
+}
+</style>
+</head>
+<body>
+<div id="root">
+<div class="hdr">
+  <div><div class="hdr-logo">MUTAGEN</div><div class="hdr-sub">// ADVANCED BIOLOGICAL MODIFICATION SYSTEM v2.0 //</div></div>
+  <div class="hdr-tabs">
+    <button class="tab-btn on" onclick="switchTab('lab',this)">⚗ LAB</button>
+    <button class="tab-btn" onclick="switchTab('battle',this)">⚔ BATTLE</button>
+    <button class="tab-btn" onclick="switchTab('roster',this)">◈ ROSTER</button>
+    <button class="tab-btn" onclick="switchTab('codex',this)">◉ CODEX</button>
+  </div>
+  <div class="hdr-right">
+    <div id="resDisplay">BIOMASS: 25 | INSTABILITY: 0%</div>
+    <div style="font-size:9px;color:var(--dim);margin-top:2px">MUTATIONS: <span id="mutCountHdr">0</span> ACTIVE</div>
+  </div>
+</div>
+
+<!-- LAB -->
+<div id="tab-lab" style="display:flex;flex:1;flex-direction:column;">
+  <div class="mob-pane-nav">
+    <button class="mob-pane-btn on" onclick="switchLabPane('body',this)">🧬 BODY</button>
+    <button class="mob-pane-btn" onclick="switchLabPane('mutations',this)">⚗ MUTATIONS</button>
+    <button class="mob-pane-btn" onclick="switchLabPane('biology',this)">◉ BIOLOGY</button>
+  </div>
+  <div class="layout" style="flex:1">
+    <div class="pane mob-active" id="lab-pane-body" style="background:var(--panel)">
+      <div class="pane-title">SUBJECT <span class="pane-title-badge">ORGAN MAP</span></div>
+      <div class="body-diagram-wrap">
+        <input id="subjectName" type="text" value="SUBJECT-01" maxlength="14"
+          style="background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--text2);font-family:var(--mono);font-size:13px;text-align:center;width:100%;padding:4px;letter-spacing:2px">
+        <div class="mutant-svg-wrap" id="bodySvgWrap">
+          <svg id="bodySvg" viewBox="0 0 160 280">
+            <ellipse id="svgHead" cx="80" cy="38" rx="26" ry="30" fill="#0f1e14" stroke="#2a5a3a" stroke-width="1.5"/>
+            <rect id="svgTorso" x="46" y="72" width="68" height="90" rx="6" fill="#0f1e14" stroke="#2a5a3a" stroke-width="1.5"/>
+            <rect id="svgLArm" x="18" y="76" width="25" height="76" rx="10" fill="#0f1e14" stroke="#2a5a3a" stroke-width="1.5"/>
+            <rect id="svgRArm" x="117" y="76" width="25" height="76" rx="10" fill="#0f1e14" stroke="#2a5a3a" stroke-width="1.5"/>
+            <rect id="svgLLeg" x="48" y="166" width="28" height="90" rx="10" fill="#0f1e14" stroke="#2a5a3a" stroke-width="1.5"/>
+            <rect id="svgRLeg" x="84" y="166" width="28" height="90" rx="10" fill="#0f1e14" stroke="#2a5a3a" stroke-width="1.5"/>
+            <ellipse id="svgEyeL" cx="72" cy="33" rx="5" ry="5" fill="rgba(61,255,143,0.7)"/>
+            <ellipse id="svgEyeR" cx="88" cy="33" rx="5" ry="5" fill="rgba(61,255,143,0.7)"/>
+            <g id="svgNeuro" opacity="0.3">
+              <line x1="80" y1="68" x2="80" y2="162" stroke="#b044ff" stroke-width="1" stroke-dasharray="3,3"/>
+              <line x1="80" y1="90" x2="30" y2="105" stroke="#b044ff" stroke-width="0.7" stroke-dasharray="2,4"/>
+              <line x1="80" y1="90" x2="130" y2="105" stroke="#b044ff" stroke-width="0.7" stroke-dasharray="2,4"/>
+            </g>
+            <g id="svgVeins" opacity="0">
+              <path d="M70 85 Q55 100 58 120 Q62 140 68 155" stroke="#ff3a3a" stroke-width="1" fill="none" stroke-dasharray="2,3"/>
+              <path d="M90 85 Q105 100 102 120 Q98 140 92 155" stroke="#ff3a3a" stroke-width="1" fill="none" stroke-dasharray="2,3"/>
+            </g>
+            <g id="svgMutOverlay"></g>
+          </svg>
+          <div class="organ-btn" id="ob-brain"    style="left:58px;top:8px;width:44px;height:44px"           onclick="selectOrgan('brain')"></div>
+          <div class="organ-btn" id="ob-lungs"    style="left:50px;top:72px;width:60px;height:36px;border-radius:4px" onclick="selectOrgan('lungs')"></div>
+          <div class="organ-btn" id="ob-heart"    style="left:62px;top:94px;width:36px;height:30px"          onclick="selectOrgan('heart')"></div>
+          <div class="organ-btn" id="ob-skin"     style="left:4px;top:60px;width:20px;height:100px;border-radius:4px" onclick="selectOrgan('skin')"></div>
+          <div class="organ-btn" id="ob-skeleton" style="left:46px;top:130px;width:68px;height:30px;border-radius:4px" onclick="selectOrgan('skeleton')"></div>
+          <div class="organ-btn" id="ob-muscles"  style="left:136px;top:60px;width:20px;height:100px;border-radius:4px" onclick="selectOrgan('muscles')"></div>
+          <div class="organ-btn" id="ob-gut"      style="left:52px;top:160px;width:56px;height:34px;border-radius:4px" onclick="selectOrgan('gut')"></div>
+          <div class="organ-btn" id="ob-glands"   style="left:30px;top:200px;width:100px;height:56px;border-radius:4px;opacity:0.6" onclick="selectOrgan('glands')"></div>
+        </div>
+        <div class="bio-stats" id="bioStats"></div>
+        <div style="display:flex;gap:6px;width:100%;padding:0 0 8px">
+          <button class="btn btn-g" style="flex:1;font-size:9px;padding:8px" onclick="saveRoster()">SAVE</button>
+          <button class="btn btn-r" style="flex:1;font-size:9px;padding:8px" onclick="clearSubject()">RESET</button>
+        </div>
+      </div>
+    </div>
+    <div class="pane" id="lab-pane-mutations" style="background:var(--bg2)">
+      <div class="pane-title">MUTATIONS <span class="pane-title-badge" id="organLabel">SELECT ORGAN</span></div>
+      <div class="mut-browser">
+        <div class="mut-filter-bar">
+          <button class="filter-btn on" onclick="setFilter('all',this)">ALL</button>
+          <button class="filter-btn" onclick="setFilter('structural',this)">STRUCTURAL</button>
+          <button class="filter-btn" onclick="setFilter('metabolic',this)">METABOLIC</button>
+          <button class="filter-btn" onclick="setFilter('chemical',this)">CHEMICAL</button>
+          <button class="filter-btn" onclick="setFilter('sensory',this)">SENSORY</button>
+          <button class="filter-btn" onclick="setFilter('neurological',this)">NEUROLOGICAL</button>
+        </div>
+        <div class="mut-list" id="mutList"></div>
+      </div>
+    </div>
+    <div class="pane" id="lab-pane-biology" style="background:var(--panel)">
+      <div class="pane-title">BIOLOGY</div>
+      <div class="right-panel">
+        <div class="rp-section">
+          <div class="rp-title">MUTATION INSTABILITY</div>
+          <div class="instab-bar-bg"><div class="instab-bar-fill" id="instabFill" style="width:0%"></div></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+            <div style="font-family:var(--mono);font-size:8px;color:var(--dim)" id="instabLabel">STABLE</div>
+            <div style="font-family:var(--mono);font-size:11px" id="instabVal" style="color:var(--green)">0%</div>
+          </div>
+          <div style="font-family:var(--mono);font-size:8px;margin-top:4px" id="instabRisks"></div>
+        </div>
+        <div class="rp-section">
+          <div class="rp-title">ACTIVE MUTATIONS (<span id="activeMutCount">0</span>)</div>
+          <div class="active-mut-list" id="activeMutList">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--dim);text-align:center;padding:8px">No mutations applied</div>
+          </div>
+        </div>
+        <div class="rp-section">
+          <div class="rp-title">EMERGENT PHENOMENA</div>
+          <div id="comboDisplay" class="combo-unlocked">
+            <div style="font-family:var(--mono);font-size:8px;color:var(--dim);text-align:center;padding:8px">Combine mutations to trigger emergent effects...</div>
+          </div>
+        </div>
+        <div class="rp-section">
+          <div class="rp-title">MUTATION STAGE</div>
+          <div id="visualStage" style="font-family:var(--mono);font-size:9px;color:var(--text);line-height:1.8"></div>
+        </div>
+        <div class="rp-section" style="flex:1">
+          <div class="rp-title">RESEARCH LOG</div>
+          <div class="event-log" id="eventLog">
+            <div class="ev info">// SUBJECT INITIALIZED — AWAITING MODIFICATION //</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BATTLE -->
+<div id="tab-battle" class="battle-screen">
+  <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:center">
+    <select id="enemySelect" style="background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:8px 14px;font-family:var(--mono);font-size:10px;flex:1"></select>
+    <select id="envSelect"   style="background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:8px 14px;font-family:var(--mono);font-size:10px;flex:1"></select>
+    <button class="btn btn-r" onclick="startBattle()">DEPLOY</button>
+    <button class="btn btn-c" onclick="resetBattle()">ABORT</button>
+  </div>
+  <div style="padding:8px 20px;border-bottom:1px solid var(--border)">
+    <div id="battleSubjectInfo" style="font-family:var(--mono);font-size:9px;color:var(--dim)">Select subject from Roster, then deploy.</div>
+  </div>
+  <div class="battle-top" id="battleArea" style="display:none">
+    <div class="bf-card player">
+      <div class="bf-name" id="pName">SUBJECT</div>
+      <div class="hp-row"><div class="hp-label-row"><span>VITALITY</span><span id="pHpTxt">100/100</span></div><div class="hp-track"><div class="hp-fill p" id="pHpBar" style="width:100%"></div></div></div>
+      <div class="hp-row"><div class="hp-label-row"><span>STAMINA</span><span id="pStamTxt">100</span></div><div class="hp-track"><div class="hp-fill stam-fill" id="pStamBar" style="width:100%"></div></div></div>
+      <div class="hp-row"><div class="hp-label-row"><span>HUNGER</span><span id="pHunTxt">100%</span></div><div class="hp-track"><div class="hp-fill hun-fill" id="pHunBar" style="width:100%"></div></div></div>
+      <div class="status-tags" id="pStatus"></div>
+      <div class="ability-grid" id="pAbilities"></div>
+    </div>
+    <div class="vs-col">
+      <div class="vs-txt">VS</div>
+      <div class="round-txt" id="roundTxt">ROUND 1</div>
+      <div id="envLabel" style="font-family:var(--mono);font-size:8px;color:var(--orange);text-align:center;margin-top:4px"></div>
+    </div>
+    <div class="bf-card enemy">
+      <div class="bf-name" id="eName">ENEMY</div>
+      <div class="hp-row"><div class="hp-label-row"><span>VITALITY</span><span id="eHpTxt">100/100</span></div><div class="hp-track"><div class="hp-fill e" id="eHpBar" style="width:100%"></div></div></div>
+      <div class="hp-row"><div class="hp-label-row"><span>STAMINA</span><span id="eStamTxt">150</span></div><div class="hp-track"><div class="hp-fill stam-fill" id="eStamBar" style="width:100%"></div></div></div>
+      <div class="status-tags" id="eStatus"></div>
+      <div style="font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:8px;line-height:1.8" id="eMutTags"></div>
+    </div>
+  </div>
+  <div class="battle-bottom" id="battleBottom" style="display:none">
+    <div class="battle-log-pane" id="battleLog"><div class="blog-entry sys">// COMBAT SYSTEMS ONLINE //</div></div>
+    <div class="battle-env-pane" id="envPane"></div>
+  </div>
+</div>
+
+<!-- ROSTER -->
+<div id="tab-roster" class="full-screen">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div style="font-family:var(--display);font-size:28px;letter-spacing:4px;color:var(--cyan)">SUBJECT ROSTER</div>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--dim)">Select a subject to deploy in battle</div>
+  </div>
+  <div class="roster-grid" id="rosterGrid"></div>
+</div>
+
+<!-- CODEX -->
+<div id="tab-codex" class="full-screen">
+  <div style="font-family:var(--display);font-size:28px;letter-spacing:4px;color:var(--cyan);margin-bottom:4px">MUTATION CODEX</div>
+  <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-bottom:12px">All known genetic modifications. Classified research — APEX Corp Internal.</div>
+  <div class="codex-grid" id="codexGrid"></div>
+</div>
+</div>
+
+<div id="tip"><div class="tip-name" id="tipName"></div><div class="tip-sci" id="tipSci"></div><div class="tip-stats" id="tipStats"></div></div>
+<div class="modal-bg" id="modal"><div class="modal"><div class="modal-title" id="modalTitle">WARNING</div><div class="modal-body" id="modalBody"></div><button class="modal-close" onclick="document.getElementById('modal').classList.remove('on')">ACKNOWLEDGE</button></div></div>
+<div class="notif-stack" id="notifStack"></div>
+<script>
+// ═══════════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════════
+const ORGANS=[
+  {id:'skin',     name:'SKIN',        slots:3,color:'#888'},
+  {id:'skeleton', name:'SKELETON',    slots:3,color:'#ccc'},
+  {id:'muscles',  name:'MUSCLES',     slots:3,color:'#f44'},
+  {id:'brain',    name:'BRAIN',       slots:3,color:'#b4f'},
+  {id:'heart',    name:'CIRCULATORY', slots:3,color:'#f33'},
+  {id:'lungs',    name:'RESPIRATORY', slots:2,color:'#4af'},
+  {id:'gut',      name:'DIGESTIVE',   slots:2,color:'#fa4'},
+  {id:'glands',   name:'CHEM GLANDS', slots:3,color:'#4fa'},
+];
+const TIERS=['PROTOTYPE','STABLE','SPECIALIZED','EXTREME','TRANSHUMAN','MONSTROUS'];
+const MUTATIONS=[
+  {id:'chitin',organ:'skin',cat:'structural',tier:1,name:'CHITIN PLATING',icon:'🪲',
+   sci:'CRISPR-XI insertion of arthropod chitin-synthase CHS-1 into fibroblast precursors. Keratinocytes polymerize N-acetylglucosamine into 3mm sub-dermal hexagonal plates during G2 mitotic phase.',
+   pros:['+30 DEF','BLUNT resist'],cons:['-20 SPD','HEAT trap','+40% caloric'],
+   stats:{def:30,spd:-20,caloric:40},req:[],conflicts:['elastic_skin'],
+   instab:8,cancerRisk:3,organStress:20,boneStress:0,heatOutput:15,
+   visChange:'Cracked ceramic-grey plates appear across shoulders and forearms'},
+  {id:'elastic_skin',organ:'skin',cat:'structural',tier:0,name:'ELASTIC DERMIS',icon:'🫧',
+   sci:'Tropoelastin gene ELN copy number amplification x8 with LOX crosslinker suppression. Dermis achieves 600% reversible elongation via elastin fiber realignment.',
+   pros:['+30 DODGE','SLASH resist'],cons:['-15 DEF','TOXIN absorb risk'],
+   stats:{dodge:30,def:-15},req:[],conflicts:['chitin'],
+   instab:4,cancerRisk:1,organStress:8,boneStress:0,heatOutput:0,
+   visChange:'Skin becomes translucent and ripples visibly with movement'},
+  {id:'bone_weave',organ:'skeleton',cat:'structural',tier:1,name:'OSSEOUS WEAVE',icon:'🦴',
+   sci:'SOST inhibitor retroviral delivery triggers osteoblast cascade. Cortical bone rebuilds with titanium-analog crystalline matrix at 4.2x baseline density.',
+   pros:['+40 DEF','FRACTURE immune','+25 STR'],cons:['-30 SPD','SWIM impossible','+80% food'],
+   stats:{def:40,spd:-30,str:25,caloric:80},req:[],conflicts:[],
+   instab:12,cancerRisk:2,organStress:30,boneStress:0,heatOutput:5,
+   visChange:'Visible bone protrusions ridge along jaw, spine, and knuckles'},
+  {id:'bone_spurs',organ:'skeleton',cat:'structural',tier:1,name:'CORTICAL SPURS',icon:'🦔',
+   sci:'Runx2 overexpression with BMP-4 drives ectopic osteogenesis at tendon insertion points. Spurs breach the dermis at 4-7 anatomical sites.',
+   pros:['SPIKE 25 counter','+15 ATK','PIERCE on strikes'],cons:['SELF 5/turn','Clothing impossible','Social horror'],
+   stats:{atk:15,selfDmgPerTurn:5},req:['bone_weave'],conflicts:[],
+   instab:15,cancerRisk:5,organStress:25,boneStress:0,heatOutput:0,
+   visChange:'Ivory spurs protrude from knuckles, elbows, and spine'},
+  {id:'hollow_bones',organ:'skeleton',cat:'structural',tier:0,name:'PNEUMATIC BONES',icon:'🪶',
+   sci:'Wnt16 periosteal signaling deletion produces avian-like medullary cavity expansion. Cortical walls maintain tensile strength while mass drops 42%.',
+   pros:['+35 SPD','+30 JUMP'],cons:['-30 DEF','FRACTURE risk x3','HEAVY gear impossible'],
+   stats:{spd:35,def:-30},req:[],conflicts:['bone_weave'],
+   instab:10,cancerRisk:2,organStress:15,boneStress:20,heatOutput:0,
+   visChange:'Unusually light movement — subject visibly lacks normal physical mass'},
+  {id:'extra_limbs',organ:'muscles',cat:'structural',tier:3,name:'AUXILIARY LIMBS',icon:'🦑',
+   sci:'Hox gene cluster reactivation via synthetic HSATF-3R induces supernumerary limb buds at thoracic Hox-C boundaries. Fully innervated secondary arms emerge from lateral thorax.',
+   pros:['DUAL WIELD','CLIMB +50','+30 ATK'],cons:['+100% caloric','HIGH instability','+30 Organ Stress'],
+   stats:{atk:30,caloric:100},req:['bone_weave','myostatin_null'],conflicts:[],
+   instab:35,cancerRisk:15,organStress:45,boneStress:10,heatOutput:20,
+   visChange:'Two additional arms emerge from the ribcage — grotesque and functional'},
+  {id:'regen_marrow',organ:'heart',cat:'metabolic',tier:2,name:'REGEN CASCADE',icon:'✨',
+   sci:'Foxn1 niche knockout paired with HIF-1a overexpression in bone marrow HSC pool. Tissue repair at 40x baseline. Glucose consumption spikes 300% during wound closure.',
+   pros:['REGEN 12/turn','Wound close fast','+30 HP'],cons:['+150% glucose burn','Hypoglycemia risk','TUMOR risk'],
+   stats:{hp:30,regen:12,caloric:150},req:[],conflicts:[],
+   instab:18,cancerRisk:20,organStress:35,boneStress:0,heatOutput:10,
+   visChange:'Wounds visibly seal in seconds — blood vessels glow faintly at injury sites'},
+  {id:'thermogenic',organ:'heart',cat:'metabolic',tier:1,name:'THERMOGENESIS',icon:'🔥',
+   sci:'UCP1 uncoupling protein ectopic expression in skeletal muscle mitochondria converts 35% of ATP to heat. Resting body temp 42C, combat 47C.',
+   pros:['HEAT aura 10/turn','COLD immune','Fire resist'],cons:['+200% hydration','DEHYDRATE risk','OVERHEAT in hot env'],
+   stats:{atk:10,hydration:-30},req:[],conflicts:['cryo_adapt'],
+   instab:12,cancerRisk:3,organStress:20,boneStress:0,heatOutput:40,
+   visChange:'Steam rises from skin at all times — red shimmer visible under dermis'},
+  {id:'cryo_adapt',organ:'heart',cat:'metabolic',tier:1,name:'CRYOGENIC ADAPT',icon:'🧊',
+   sci:'Antifreeze protein AFPIII from Pseudopleuronectes americanus integrated into cell membranes. Glycerol cryoprotectant via modified GPDH upregulation.',
+   pros:['COLD immune','FREEZE dmg immune'],cons:['HEAT weakness','-15 SPD warm env'],
+   stats:{def:15,spd:-10},req:[],conflicts:['thermogenic'],
+   instab:10,cancerRisk:2,organStress:15,boneStress:0,heatOutput:-20,
+   visChange:'Pale blue tinge to skin — breath visible even at room temperature'},
+  {id:'myostatin_null',organ:'muscles',cat:'metabolic',tier:1,name:'MYOSTATIN KNOCKOUT',icon:'💪',
+   sci:'Complete MSTN deletion via base editing removes primary myostatin inhibition. Satellite cell fusion unconstrained — muscle mass 3.4x baseline. Cardiac hypertrophy secondary.',
+   pros:['+50 STR','+30 ATK','CARRY x5'],cons:['+60% caloric','CARDIAC strain','-15 SPD'],
+   stats:{str:50,atk:30,spd:-15,caloric:60},req:[],conflicts:[],
+   instab:15,cancerRisk:5,organStress:30,boneStress:15,heatOutput:20,
+   visChange:'Extreme musculature — veins protrude prominently, joints strain visibly'},
+  {id:'atp_overdrive',organ:'gut',cat:'metabolic',tier:2,name:'ATP OVERDRIVE',icon:'⚡',
+   sci:'PK-M1 replacement of PK-M2 in all fast-twitch fibers — glycolytic flux 700% above baseline via lactate recycling loop.',
+   pros:['+40 SPD','SPRINT unlimited','+50 STAM'],cons:['+100% caloric','LACTIC buildup'],
+   stats:{spd:40,stam:50,caloric:100},req:[],conflicts:[],
+   instab:14,cancerRisk:4,organStress:25,boneStress:5,heatOutput:25,
+   visChange:'Visible muscular twitching at rest — subject barely stays still'},
+  {id:'venom_glands',organ:'glands',cat:'chemical',tier:1,name:'HEMOTOXIC VENOM',icon:'🐍',
+   sci:'Xenophrys ornata phospholipase A2 integrated into modified parotoid analog glands. Delivered via subdermal channeling. Destroys red blood cell membranes via oxidative cascade.',
+   pros:['VENOM 15/turn','STRIKE delivers toxin'],cons:['ACID resist needed','SELF-leak if damaged'],
+   stats:{atk:15,poison:15},req:[],conflicts:[],
+   instab:12,cancerRisk:6,organStress:20,boneStress:0,heatOutput:0,
+   visChange:'Yellowish tinge at fingertips — pustules occasionally visible on palms'},
+  {id:'acid_tissue',organ:'skin',cat:'chemical',tier:0,name:'ACID-RESIST TISSUE',icon:'🫀',
+   sci:'Synthetic MUC5B variant overexpression lines all epithelial surfaces with pH 1.2 gel-phase barrier. H+/K+-ATPase pumps actively export protons.',
+   pros:['ACID immune','CORROSIVE resist','ENZYME resist'],cons:['+20% caloric','Reduced drug absorption'],
+   stats:{def:10,caloric:20},req:[],conflicts:[],
+   instab:8,cancerRisk:3,organStress:12,boneStress:0,heatOutput:0,
+   visChange:'Skin has a faintly iridescent, oil-slick quality'},
+  {id:'acid_saliva',organ:'glands',cat:'chemical',tier:1,name:'ACID SALIVA',icon:'☢',
+   sci:'Carbonic anhydrase IV upregulation in modified salivary acinar cells produces pH 1.4 secretion. MUC5B variant lining prevents self-digestion of oral mucosa.',
+   pros:['ACID SPIT 30 dmg','CORRODE armor'],cons:['Requires acid tissue','SELF dmg if no lining'],
+   stats:{atk:30},req:['acid_tissue'],conflicts:[],
+   instab:16,cancerRisk:8,organStress:22,boneStress:0,heatOutput:5,
+   visChange:'Teeth show acid erosion — saliva visibly fumes in cold air'},
+  {id:'neurotoxin_glands',organ:'glands',cat:'chemical',tier:2,name:'NEUROTOXIN GLANDS',icon:'☣',
+   sci:'Batrachotoxin analog synthesis via modified sterol biosynthesis. Delivered as skin secretion. Blocks Nav1 channels irreversibly at 2ug/kg — complete motor paralysis within 90 seconds.',
+   pros:['TOUCH: paralyze 2 turns','AREA secretion'],cons:['STUN self if wounded','Requires acid tissue'],
+   stats:{atk:20},req:['acid_tissue'],conflicts:[],
+   instab:20,cancerRisk:10,organStress:28,boneStress:0,heatOutput:0,
+   visChange:'Iridescent gland bulges visible along spine and thighs'},
+  {id:'explosive_sweat',organ:'glands',cat:'chemical',tier:3,name:'EXPLOSIVE SWEAT',icon:'💥',
+   sci:'Modified eccrine glands synthesize nitrocellulose-analog nitrate esters via XDH-oxidase pathway. Dried secretion becomes shock-sensitive. Piezoelectric dermal cells allow deliberate activation.',
+   pros:['EXPLOSION 60 area dmg','Contact detonation'],cons:['SELF 30 on trigger','HUMIDITY risk'],
+   stats:{atk:60},req:['acid_tissue','thermogenic'],conflicts:[],
+   instab:40,cancerRisk:20,organStress:50,boneStress:0,heatOutput:60,
+   visChange:'Constant sweating — acrid chemical smell detectable at 20m'},
+  {id:'night_vision',organ:'brain',cat:'sensory',tier:0,name:'TAPETUM LUCIDUM',icon:'👁',
+   sci:'Tapetum lucidum retroreflective layer behind retinal pigment epithelium. Rod photoreceptor density 12x. Achromatic light amplification ~60x, functional at 0.001 lux.',
+   pros:['NIGHT VISION full','+15 DODGE dark'],cons:['BRIGHT LIGHT stuns','Day vision -10'],
+   stats:{dodge:15},req:[],conflicts:[],
+   instab:5,cancerRisk:1,organStress:8,boneStress:0,heatOutput:0,
+   visChange:'Eyes become uniformly reflective silver — eerie eyeshine in low light'},
+  {id:'echolocation',organ:'brain',cat:'sensory',tier:1,name:'BIOSONAR',icon:'🦇',
+   sci:'Prestin motor protein upregulation in cochlear outer hair cells with laryngeal muscle specialization. Produces 180kHz echolocation clicks. Auditory cortex expands 40%.',
+   pros:['DETECT invisible','+20 DODGE'],cons:['LOUD sounds stun','EMF disrupts'],
+   stats:{dodge:20,int:10},req:[],conflicts:[],
+   instab:7,cancerRisk:2,organStress:12,boneStress:0,heatOutput:0,
+   visChange:'Ears enlarge and rotate independently — jaw clicks audibly when scanning'},
+  {id:'electrosense',organ:'brain',cat:'sensory',tier:1,name:'ELECTRORECEPTION',icon:'📡',
+   sci:'Lorenzini ampullae analog: piezoelectric modified Merkel-disk receptors in facial dermis create 30m EM detection sphere. Lateral line homolog for 60Hz-2MHz bandwidth.',
+   pros:['DETECT all beings 30m','PREDICT movement'],cons:['EMP stuns 2 turns','Neural headaches'],
+   stats:{dodge:20,int:15},req:[],conflicts:[],
+   instab:10,cancerRisk:3,organStress:15,neuralStrain:25,boneStress:0,heatOutput:0,
+   visChange:'Faint patterning on face — bioluminescent flicker during intense sensing'},
+  {id:'thermal_vision',organ:'brain',cat:'sensory',tier:1,name:'THERMAL VISION',icon:'🌡',
+   sci:'Infrared-sensitive OPSIN-IR3 integrated into cone cell mosaics. Pit organ analog in nasal bone provides 3D thermal mapping at 0.02C resolution.',
+   pros:['HEAT tracking','INVISIBLE foes visible'],cons:['Cosmetic disfigurement','Brain heat strain'],
+   stats:{atk:10,dodge:10},req:[],conflicts:[],
+   instab:8,cancerRisk:2,organStress:14,boneStress:5,heatOutput:0,
+   visChange:'Nasal bridge develops pit organ depressions — eyes glow faint amber'},
+  {id:'pain_null',organ:'brain',cat:'neurological',tier:1,name:'NOCICEPTION NULL',icon:'🚫',
+   sci:'Nav1.7 voltage-gated sodium channel complete knockout eliminates all nociceptive signaling. Injury accumulates silently.',
+   pros:['PAIN immune','MORALE unbreakable'],cons:['NO injury detection','DAMAGE accumulates','Organ Stress hidden'],
+   stats:{hp:20,def:10},req:[],conflicts:[],
+   instab:10,cancerRisk:4,organStress:15,boneStress:0,heatOutput:0,
+   visChange:'Expressionless during injury — old wounds ignored until catastrophic failure'},
+  {id:'adrenal_overdrive',organ:'brain',cat:'neurological',tier:2,name:'ADRENAL OVERDRIVE',icon:'🧠',
+   sci:'Adrenal medulla hypertrophy via ASCL1 amplification. Sustained epinephrine output 40x baseline. Tachycardia and analgesic effect maintained continuously.',
+   pros:['+40 ATK burst','BERSERK state','+50 SPD burst'],cons:['CRASH after','CARDIAC arrest risk','HIGH instability'],
+   stats:{atk:40,spd:30},req:[],conflicts:[],
+   instab:25,cancerRisk:8,organStress:40,boneStress:10,heatOutput:30,
+   visChange:'Permanently dilated pupils — resting heart rate audible to bystanders at 2m'},
+  {id:'split_nervous',organ:'brain',cat:'neurological',tier:3,name:'DISTRIBUTED CNS',icon:'🔀',
+   sci:'Synthetic ganglionic nodes via embryoid body implantation at 7 thoracic vertebrae. Body can react independently of conscious control. Headless reflex survival ~90 seconds.',
+   pros:['SPLIT action','Headless survival 2 turns','Reflex-auto dodge'],cons:['+50% neural strain','Hallucinations','COORDINATION loss'],
+   stats:{dodge:30,atk:10},req:['pain_null'],conflicts:[],
+   instab:35,cancerRisk:12,organStress:50,neuralStrain:50,boneStress:0,heatOutput:0,
+   visChange:'Subtle tremors at rest — occasional autonomous limb movement'},
+  {id:'synaptic_od',organ:'brain',cat:'neurological',tier:2,name:'SYNAPTIC OVERDRIVE',icon:'💡',
+   sci:'CaMKII-a persistent autophosphorylation via T286 point mutation creates permanent LTP. GluN2B overexpression at all NMDA receptors. Processing 12x baseline.',
+   pros:['+40 INT','+30 SPD','PREDICT enemy move'],cons:['SEIZURE risk 15%/turn','NEURAL BURN over time'],
+   stats:{spd:30,int:40,dodge:15},req:[],conflicts:[],
+   instab:20,cancerRisk:5,organStress:30,neuralStrain:40,boneStress:0,heatOutput:0,
+   visChange:'Eyes dart rapidly — speech alternates between glacial and explosive bursts'},
+  {id:'mirror_hyper',organ:'brain',cat:'neurological',tier:1,name:'MIRROR NEURON ARRAY',icon:'🪞',
+   sci:'F5 mirror neuron density expanded to 800% baseline via NGF-3 trophin. Observed action prediction accuracy 89% for trained opponents.',
+   pros:['PREDICT attacks +30 DODGE','READ intent'],cons:['EMPATHY overload','CROWDS cause seizure'],
+   stats:{dodge:30,int:20},req:[],conflicts:[],
+   instab:12,cancerRisk:3,organStress:20,neuralStrain:30,boneStress:0,heatOutput:0,
+   visChange:'Subject mimics surrounding people unconsciously — disconcerting to observers'},
+
+  // ── NEW STRUCTURAL ──
+  {id:'dermal_ceramic',organ:'skin',cat:'structural',tier:2,name:'DERMAL CERAMICIZATION',icon:'🪨',
+   sci:'Modified skin cells deposit ceramic-calcium composite layers analogous to abalone nacre. Carbon nanotube proteins reinforce intersecting layers at the microscopic scale — resulting in sub-dermal tiling with tensile strength exceeding structural steel.',
+   pros:['+45 DEF','Ballistic resist','Blade resist','Reduced bleed'],cons:['-SPD','Joint stiffness','OVERHEAT risk','High mineral intake'],
+   stats:{def:45,spd:-15,heatOutput:20},req:[],conflicts:['elastic_skin'],
+   instab:18,cancerRisk:6,organStress:35,boneStress:10,heatOutput:20,
+   visChange:'Pale geometric tiling visible beneath skin — audible grinding at joints during movement'},
+  {id:'reinf_skeleton',organ:'skeleton',cat:'structural',tier:2,name:'REINFORCED SKELETON',icon:'💎',
+   sci:'Bone matrix infused with graphene-analog collagen lattices via targeted osteoblast gene therapy. Cortical bone reconstructs with a carbon-composite matrix — impact resistance 6x baseline. Fracture threshold approaches structural ceramics.',
+   pros:['FRACTURE IMMUNE','++ Carry Weight','++ Impact Resist'],cons:['+Weight','-Flexibility','+60% caloric'],
+   stats:{def:35,str:30,spd:-10,caloric:60},req:[],conflicts:['hollow_bones'],
+   instab:14,cancerRisk:4,organStress:30,boneStress:0,heatOutput:5,
+   visChange:'Bone ridges prominent through skin — joints appear unnaturally angular and dense'},
+  {id:'fat_armor',organ:'skin',cat:'structural',tier:1,name:'SUBDERMAL FAT ARMOR',icon:'🛡',
+   sci:'Engineered adipose tissue is reprogrammed to form layered viscoelastic gel structures beneath the dermis. Blunt impacts are dissipated laterally across the fat matrix — peak force to organs reduced by up to 70%.',
+   pros:['+++ Blunt resist','Cold resist','Organ protection'],cons:['+Weight','-SPD','HEAT exhaustion'],
+   stats:{def:25,spd:-20,caloric:80},req:[],conflicts:[],
+   instab:10,cancerRisk:3,organStress:20,boneStress:0,heatOutput:-15,
+   visChange:'Unusually padded silhouette — skin indents slowly under pressure, rebounds over seconds'},
+  {id:'dense_muscle',organ:'muscles',cat:'structural',tier:2,name:'DENSE MUSCLE FIBERS',icon:'🏋',
+   sci:'Fast-twitch muscle fibers are replaced with high-density protein-bundle clusters containing 3x myosin head concentration. Fiber cross-sectional force output exceeds Olympic-tier athletes at baseline contraction.',
+   pros:['+++ Strength','+ATK','Sprint power'],cons:['+++ Calorie drain','CRAMP risk','HEATSTROKE risk'],
+   stats:{str:50,atk:35,spd:10,caloric:120,heatOutput:30},req:['reinf_skeleton'],conflicts:[],
+   instab:20,cancerRisk:6,organStress:40,boneStress:15,heatOutput:30,
+   visChange:'Extreme musculature tears at clothing — visible fascicle bundles twitch independently at rest'},
+  {id:'reactive_spikes',organ:'skeleton',cat:'structural',tier:2,name:'REACTIVE BONE SPIKES',icon:'🔱',
+   sci:'Osteoblast populations are primed to respond to stress-hormone triggers with rapid ectopic ossification. Cortical spurs emerge at tendon insertion sites within 800ms of adrenaline spike — fully functional melee weapons.',
+   pros:['Melee spike 25 dmg','Grapple counter dmg','Armor pierce'],cons:['Skeletal pain','Internal puncture risk','-DEX'],
+   stats:{atk:25,def:15,selfDmgPerTurn:3},req:[],conflicts:[],
+   instab:18,cancerRisk:8,organStress:28,boneStress:20,heatOutput:0,
+   visChange:'Retracted spurs visible as knuckle and elbow ridges — erupt 3–6 cm under stress'},
+  {id:'microfracture',organ:'skeleton',cat:'structural',tier:2,name:'MICROFRACTURE ADAPTATION',icon:'💢',
+   sci:'Bone cortex is pre-stressed with a controlled microfracture lattice that propagates harmlessly under impact, dissipating kinetic energy. Hyper-accelerated osteoclast/osteoblast cycling repairs fractures within minutes.',
+   pros:['+++ Impact absorb','Fall damage reduce','Blunt survival'],cons:['Chronic pain','Fatigue from repair','High nutrient demand'],
+   stats:{def:30,stam:-20},req:['regen_marrow'],conflicts:[],
+   instab:16,cancerRisk:5,organStress:25,boneStress:30,heatOutput:0,
+   visChange:'Faint cracking sounds accompany movement — X-ray shows constant hairline fracture activity'},
+  {id:'contractile_skin',organ:'skin',cat:'structural',tier:2,name:'CONTRACTILE SKIN FIBERS',icon:'🔗',
+   sci:'Artificial smooth muscle fibers are woven through the reticular dermis layer. On impact detection — via mechanoreceptor cascade — the fibers pre-contract within 40ms, stiffening the skin surface and redistributing force.',
+   pros:['Blunt resist','Reduced bleed','Temp strength boost'],cons:['Muscle spasms','Chronic exhaustion','Restricted breathing'],
+   stats:{def:20,str:15,stam:-15},req:[],conflicts:[],
+   instab:15,cancerRisk:4,organStress:22,boneStress:0,heatOutput:10,
+   visChange:'Subtle rippling visible under skin during exertion — body tightens visibly during impacts'},
+
+  // ── NEW SENSORY ──
+  {id:'compound_eyes',organ:'brain',cat:'sensory',tier:1,name:'COMPOUND EYES',icon:'🕷',
+   sci:'Human retinal tissue is restructured into an ommatidia-analog array of micro-lenses. Each lens cluster feeds to an expanded visual cortex — total angular coverage approaches 300 degrees. Motion resolution 40x baseline.',
+   pros:['Near-360° vision','Motion tracking+++','Fast target acquire'],cons:['-Focus accuracy','Visual overstim','Flicker sensitive'],
+   stats:{dodge:25,int:10},req:[],conflicts:[],
+   instab:8,cancerRisk:2,organStress:10,neuralStrain:20,boneStress:0,heatOutput:0,
+   visChange:'Eyes cover most of the orbital surface — iridescent faceted appearance, no visible pupil'},
+  {id:'vibro_sense',organ:'skin',cat:'sensory',tier:1,name:'VIBRATION DETECTION FIBERS',icon:'〽',
+   sci:'Somatosensory mechanoreceptors are replaced with elongated hair-cell analogs densely distributed across the plantar surface and extremities. Detects substrate vibrations at frequencies 0.1–800 Hz with positional accuracy to 2 meters.',
+   pros:['Detect footsteps through walls','Track movement in dark','Underground sense'],cons:['Buzzing sensations','Sleep disruption','Explosions debilitating'],
+   stats:{dodge:15,int:20},req:[],conflicts:[],
+   instab:7,cancerRisk:2,organStress:12,neuralStrain:15,boneStress:0,heatOutput:0,
+   visChange:'Fine lateral-line-like grooves visible along forearms and shins — subject constantly adjusts stance to sense ground'},
+  {id:'hyper_hearing',organ:'brain',cat:'sensory',tier:1,name:'EXPANDED AUDITORY RANGE',icon:'👂',
+   sci:'Cochlear outer hair cell count expanded 12x and prestin motor protein optimized for 0.3–85 kHz bandwidth. Auditory cortex surface area enlarged via cortical folding expansion — long-range whisper detection at 200m.',
+   pros:['Whisper hearing 200m','Detect hidden machines','Movement sense'],cons:['Loud sounds harmful','Sleep disruption','Auditory hallucinations'],
+   stats:{dodge:20,int:15},req:[],conflicts:[],
+   instab:8,cancerRisk:2,organStress:12,neuralStrain:25,boneStress:0,heatOutput:0,
+   visChange:'Ear pinnae elongated and mobile — rotate independently toward sound sources'},
+  {id:'chem_track',organ:'glands',cat:'sensory',tier:1,name:'CHEMICAL TRACKING ORGAN',icon:'👃',
+   sci:'Vomeronasal organ expanded and connected to a massively enlarged olfactory bulb. Modified MHC-associated protein receptors enable individual chemical signature identification — effective tracking range 3km under favorable conditions.',
+   pros:['Track by scent 3km','Detect fear hormones','Identify toxins/explosives'],cons:['Urban smell overwhelm','Pheromone contamination','Nausea near decay'],
+   stats:{int:25,dodge:10},req:[],conflicts:[],
+   instab:9,cancerRisk:3,organStress:15,neuralStrain:20,boneStress:0,heatOutput:0,
+   visChange:'Nostrils widen permanently — faint rhythmic flaring even at rest, lip curl exposes vomeronasal duct'},
+  {id:'polar_vision',organ:'brain',cat:'sensory',tier:0,name:'POLARIZED VISION FILTERS',icon:'🔭',
+   sci:'Retinal horizontal cells gain polarization-sensitive membrane proteins analogous to mantis shrimp photoreceptors. Three additional polarization channels grant glare elimination, underwater visibility, and micro-pattern camouflage detection.',
+   pros:['Glare elimination','Camo detection','Long-range clarity'],cons:['Indoor light disruption','Reflective surface migraines'],
+   stats:{dodge:15,int:15,atk:10},req:[],conflicts:[],
+   instab:5,cancerRisk:1,organStress:8,neuralStrain:10,boneStress:0,heatOutput:0,
+   visChange:'Eyes shift color slightly depending on viewing angle — faint iridescence in bright light'},
+  {id:'body_eyes',organ:'skin',cat:'sensory',tier:3,name:'DISTRIBUTED OCULAR CLUSTERS',icon:'👀',
+   sci:'Primitive photoreceptor clusters derived from PAX6-expressing stem cells emerge across the dorsal skin surface. Each cluster has limited directional sensitivity feeding into expanded occipital processing — total surround visual coverage even during primary eye damage.',
+   pros:['Cannot be ambushed','Omni-directional detect','Functions while blinded'],cons:['Sensory overload','Concentration impaired','Severe insomnia'],
+   stats:{dodge:40,int:-20},req:['split_nervous'],conflicts:[],
+   instab:30,cancerRisk:12,organStress:40,neuralStrain:60,boneStress:0,heatOutput:0,
+   visChange:'Small photosensitive nodes visible across back, shoulders and neck — flinch at unexpected light sources from behind'},
+
+  // ── NEW NEUROLOGICAL ──
+  {id:'neural_clock',organ:'brain',cat:'neurological',tier:2,name:'NEURAL OVERCLOCKING',icon:'⏱',
+   sci:'Myelin sheath thickness increased 300% via oligodendrocyte BDNF cascade while synaptic vesicle docking proteins are optimized via PIP2-binding domain modification. Net signal propagation velocity 8x baseline — subjective time dilation during stress states.',
+   pros:['Fast reactions','Time dilation in combat','Precision aim'],cons:['Migraines','Sleep disruption','SEIZURE risk++'],
+   stats:{spd:30,dodge:20,int:25,caloric:40,heatOutput:15},req:[],conflicts:[],
+   instab:18,cancerRisk:6,organStress:25,neuralStrain:45,boneStress:0,heatOutput:15,
+   visChange:'Pupils narrow during stress — speech becomes clipped and rapid, appears to be always ahead of the conversation'},
+  {id:'predator_instinct',organ:'brain',cat:'neurological',tier:1,name:'PREDATOR INSTINCT COMPLEX',icon:'🐆',
+   sci:'Basolateral amygdala volume increased 40% with modified threat-weighting algorithms via viral vector delivery to BNST neurons. Hypothalamic hunting-behavior circuits activated continuously — pattern recognition biased toward movement, escape routes, and vulnerabilities.',
+   pros:['Threat prioritize','Enhanced tracking','Combat awareness'],cons:['Reduced empathy','Territorial aggression','Cannot distinguish civilians'],
+   stats:{atk:15,dodge:20,int:10},req:[],conflicts:[],
+   instab:12,cancerRisk:3,organStress:15,neuralStrain:20,boneStress:0,heatOutput:0,
+   visChange:'Gaze tracks movement compulsively — stillness is unnatural, constant environmental scanning'},
+  {id:'memory_engram',organ:'brain',cat:'neurological',tier:1,name:'MEMORY ENGRAM REINFORCEMENT',icon:'📖',
+   sci:'Hippocampal CA1 neurons undergo CREB-pathway amplification with BDNF-driven dendritic spine density increase. Long-term potentiation threshold drops to near-zero — experiences are encoded with perfect fidelity on first exposure.',
+   pros:['Near-perfect recall','Faster skill learning','Tactical adaptation'],cons:['Cannot forget trauma','PTSD amplified','Mental clutter'],
+   stats:{int:40,spd:5},req:[],conflicts:[],
+   instab:10,cancerRisk:2,organStress:10,neuralStrain:35,boneStress:0,heatOutput:0,
+   visChange:'Faint rapid eye movement visible while awake during recall — sometimes responds to questions before they finish'},
+  {id:'hyper_reflex',organ:'brain',cat:'neurological',tier:2,name:'HYPER REFLEX ARC',icon:'💫',
+   sci:'Spinal interneuron pathways are bypassed via a direct motor-neuron reflex arc — monosynaptic response latency reduced to 6ms. Muscle pre-activation begins before conscious awareness of incoming stimulus.',
+   pros:['+++ Dodge instinct','Fast melee react','Low reaction delay'],cons:['Jerky movement','Overreacts to stimuli','Cannot remain still'],
+   stats:{dodge:35,spd:20,int:-5},req:[],conflicts:[],
+   instab:16,cancerRisk:4,organStress:20,neuralStrain:35,boneStress:0,heatOutput:0,
+   visChange:'Subject flinches or repositions at all sudden movement — appears jumpy, difficult to sneak up on even in casual settings'},
+  {id:'emot_damp',organ:'brain',cat:'neurological',tier:1,name:'EMOTIONAL DAMPENING',icon:'🥶',
+   sci:'Limbic system activity selectively suppressed via chronic low-dose CRF receptor antagonism and GABA-B upregulation in the anterior cingulate. Prefrontal dominance increased — emotional noise eliminated from decision trees.',
+   pros:['Focus under pressure','Fear/panic immune','Better decisions'],cons:['Emotional detachment','Sociopathic tendency','No interpersonal bonding'],
+   stats:{hp:10,def:10,int:20},req:[],conflicts:[],
+   instab:10,cancerRisk:2,organStress:12,neuralStrain:30,boneStress:0,heatOutput:0,
+   visChange:'Flat affect — no involuntary expressions. Eye contact unblinking and sustained beyond social norms'},
+  {id:'syn_redundancy',organ:'brain',cat:'neurological',tier:3,name:'SYNAPTIC REDUNDANCY',icon:'🔄',
+   sci:'Duplicate neural pathways are grown parallel to primary circuits via controlled neurogenesis using Sox2/Pax6 induction. Secondary pathways activate automatically on primary pathway damage — effective neural redundancy for all major processing regions.',
+   pros:['Brain damage resist','Concussion immune','Multitasking+++'],cons:['+++ Calorie demand','Headaches','Competing thoughts'],
+   stats:{hp:30,int:20,stam:-20},req:['synaptic_od'],conflicts:[],
+   instab:25,cancerRisk:8,organStress:30,neuralStrain:50,boneStress:0,heatOutput:0,
+   visChange:'Subtle involuntary facial expressions from competing neural outputs — occasionally speaks two partial sentences simultaneously'},
+  {id:'neuro_weapon',organ:'brain',cat:'neurological',tier:2,name:'NEUROCHEMICAL WEAPONIZATION',icon:'😱',
+   sci:'Modified hypothalamic nuclei produce aerosolized stress-pheromone blends including androstenone, cortisol analogs, and synthesized alarm compounds. Dispersed as a 4-meter vapor cloud — subconscious fear response triggered in 87% of test subjects within 12 seconds.',
+   pros:['Induce enemy fear aura','Disrupt enemy focus','Intimidation+++'],cons:['Affects allies too','User emotional instability','Paranoia feedback'],
+   stats:{atk:20,int:15},req:[],conflicts:[],
+   instab:22,cancerRisk:8,organStress:25,neuralStrain:40,boneStress:0,heatOutput:0,
+   visChange:'Constant faint chemical scent — nearby people become uneasy without knowing why, animals avoid subject'},
+];
+
+const COMBOS=[
+  {id:'bulletproof',name:'ADAMANTINE SHELL',rarity:'legendary',
+   req:['bone_weave','chitin','acid_tissue'],
+   sci:'Triple composite impact matrix: chitinous biopolymer + hyperdense cortical bone + acid-neutral surface. 0% penetration at 5.56mm NATO at 15m. Subject weighs ~400kg.',
+   effects:[{t:'pos',l:'BULLET IMMUNE'},{t:'pos',l:'+60 DEF'},{t:'neg',l:'-40 SPD'},{t:'neg',l:'HEAT TRAP overheat'}],
+   statMod:{def:60,spd:-40,heatOutput:30},
+   ability:{name:'STONE WALL',dmg:0,selfDef:85,desc:'85% dmg reduction this turn',stam:30}},
+  {id:'berserker',name:'BLOODRAGE CASCADE',rarity:'rare',
+   req:['myostatin_null','adrenal_overdrive','pain_null'],
+   sci:'Unrestrained myostatin-null musculature with 40x epinephrine and zero pain feedback. Force output 8x human norm, no injury limitation.',
+   effects:[{t:'pos',l:'+70 ATK'},{t:'pos',l:'FRENZY 2 strikes'},{t:'neg',l:'SELF 15 recoil'},{t:'neg',l:'CRASH after 3 turns'}],
+   statMod:{atk:70,def:-20},
+   ability:{name:'BLOOD FRENZY',dmg:75,multiHit:2,selfDmg:15,desc:'2 attacks 75 dmg each + 15 self recoil',stam:40}},
+  {id:'toxic_reactor',name:'BIOHAZARD CORE',rarity:'rare',
+   req:['venom_glands','acid_saliva','thermogenic'],
+   sci:'44C temperature accelerates venom synthesis 15x. Acid saliva and hemotoxin interact exothermically — corrosive vapor at wound sites has 3m effective radius.',
+   effects:[{t:'pos',l:'AURA 15 dmg/turn'},{t:'pos',l:'+40 POISON ATK'},{t:'neg',l:'-20 HP self-corrosion'}],
+   statMod:{atk:40,hp:-20,aura:15},
+   ability:{name:'TOXIC CLOUD',dmg:45,poison:15,desc:'Corrosive vapor — 45 dmg + 15/turn poison',stam:25}},
+  {id:'phantom',name:'GHOST PROTOCOL',rarity:'legendary',
+   req:['synaptic_od','mirror_hyper','echolocation'],
+   sci:'Synaptic 12x processing + mirror prediction + biosonar creates effective omniscience. Enemy actions perceived 800ms before execution — effectively precognitive.',
+   effects:[{t:'pos',l:'+60 DODGE'},{t:'pos',l:'PREDICT: guaranteed dodge 1/3 turns'},{t:'neg',l:'NEURAL STRAIN extreme'}],
+   statMod:{dodge:60,int:30},
+   ability:{name:'PHASE PREDICT',dmg:0,phaseDodge:true,desc:'Guaranteed dodge + counter attack',stam:35}},
+  {id:'phoenix',name:'PHOENIX MATRIX',rarity:'rare',
+   req:['regen_marrow','acid_tissue'],
+   sci:'Regenerative cascade with acid-resistant tissue — severe injuries become temporary. Full limb re-vascularization in 4 minutes. Glucose consumption: extraordinary.',
+   effects:[{t:'pos',l:'REGEN +20/turn'},{t:'pos',l:'SURVIVE lethal blow 1x'},{t:'neg',l:'+200% caloric burn'}],
+   statMod:{hp:40,regen:20,caloric:200},
+   ability:{name:'CELLULAR SURGE',dmg:0,heal:70,desc:'Emergency regeneration — restore 70 HP',stam:45}},
+  {id:'speedghost',name:'SPEEDGHOST',rarity:'uncommon',
+   req:['hollow_bones','atp_overdrive'],
+   sci:'40% mass reduction + 700% ATP flux — movement speed approaches 90km/h. Strike kinetic energy equivalent to a 12-gauge slug. Bones fracture under their own mass at peak loads.',
+   effects:[{t:'pos',l:'+70 SPD'},{t:'pos',l:'BLITZ 2 hits/turn'},{t:'neg',l:'BONE SNAP risk 10%'}],
+   statMod:{spd:70,def:-30},
+   ability:{name:'BLITZ ASSAULT',dmg:40,multiHit:2,desc:'Two velocity strikes — 2x 40 dmg',stam:30}},
+  {id:'apex_predator',name:'APEX PREDATOR',rarity:'uncommon',
+   req:['electrosense','thermal_vision','night_vision'],
+   sci:'Full-spectrum fusion: EM + IR + photon capture creates 360 degree battlefield awareness. No concealment works. Reaction time: 40ms.',
+   effects:[{t:'pos',l:'+50 DODGE'},{t:'pos',l:'INVISIBLE foes visible'},{t:'pos',l:'+20 ATK prediction'},{t:'neg',l:'EMP vulnerability'}],
+   statMod:{dodge:50,atk:20},
+   ability:{name:'SENSORY STRIKE',dmg:50,bypass:true,desc:'Strike exposed weakness — bypasses 50% defense',stam:20}},
+  {id:'acid_colossus',name:'ACID COLOSSUS',rarity:'rare',
+   req:['bone_weave','myostatin_null','acid_saliva'],
+   sci:'Bone-dense musculature with force output 12000N plus corrosive saliva delivery. pH 1.4 corrodes standard body armor in under 30 seconds.',
+   effects:[{t:'pos',l:'+60 STR'},{t:'pos',l:'+40 ATK'},{t:'neg',l:'-25 SPD'},{t:'neg',l:'+100% food'}],
+   statMod:{str:60,atk:40,spd:-25,caloric:100},
+   ability:{name:'ACID CRUSH',dmg:80,armorPierce:40,desc:'Crushing acid strike — 80 dmg strips 40% enemy DEF',stam:50}},
+  {id:'titan_frame',name:'TITAN FRAME',rarity:'rare',
+   req:['reinf_skeleton','dense_muscle','dermal_ceramic'],
+   sci:'Full-body structural overhaul — graphene bone matrix, high-density muscle bundles, and ceramic skin tiling create a near-indestructible war chassis. Subject mass exceeds 300kg. Civilian infrastructure will not support this.',
+   effects:[{t:'pos',l:'+80 DEF'},{t:'pos',l:'+50 STR'},{t:'neg',l:'-35 SPD'},{t:'neg',l:'EXTREME caloric burn'},{t:'warn',l:'OVERHEAT risk'}],
+   statMod:{def:80,str:50,spd:-35,caloric:150,heatOutput:40},
+   ability:{name:'SEISMIC IMPACT',dmg:90,stun:true,desc:'Full-body slam — 90 dmg + stun from sheer mass',stam:60}},
+  {id:'ghost_senses',name:'SPECTRAL AWARENESS',rarity:'uncommon',
+   req:['compound_eyes','hyper_hearing','vibro_sense'],
+   sci:'Tri-modal sensory fusion: ommatidia visual coverage + ultrasonic hearing + substrate vibration detection. Subject has effectively no blind spots or deaf zones — total environmental awareness in any lighting or terrain condition.',
+   effects:[{t:'pos',l:'UNAMBUSHABLE'},{t:'pos',l:'+50 DODGE'},{t:'pos',l:'360° detection'},{t:'neg',l:'SENSORY OVERWHELM in crowds'}],
+   statMod:{dodge:50,int:20},
+   ability:{name:'TOTAL AWARENESS',dmg:0,phaseDodge:true,desc:'Guaranteed dodge — full sensory coverage active',stam:20}},
+  {id:'apex_mind',name:'APEX COGNITION',rarity:'legendary',
+   req:['neural_clock','memory_engram','syn_redundancy'],
+   sci:'Simultaneous overclocking of myelinated pathways, perfect-fidelity memory encoding, and fully redundant neural architecture. Cognitive processing exceeds any known biological or early silicon system. Subject experiences subjective time at roughly 0.3x normal.',
+   effects:[{t:'pos',l:'+80 INT'},{t:'pos',l:'PREDICT all enemy moves'},{t:'neg',l:'EXTREME neural strain'},{t:'neg',l:'Social disconnection complete'}],
+   statMod:{int:80,spd:20,dodge:30},
+   ability:{name:'COGNITIVE OVERRIDE',dmg:0,phaseDodge:true,desc:'Predict and dodge — then counter for full ATK',stam:40}},
+  {id:'fear_titan',name:'DREAD COLOSSUS',rarity:'rare',
+   req:['neuro_weapon','dense_muscle','predator_instinct'],
+   sci:'Chemically-induced prey-response in nearby organisms combined with predatory instinct programming and industrial musculature. Subject triggers biological fear responses in targets before physical contact — prey animals flee, humans freeze.',
+   effects:[{t:'pos',l:'FEAR AURA — enemy -20 ATK'},{t:'pos',l:'+60 STR'},{t:'neg',l:'Cannot operate near civilians'},{t:'neg',l:'Permanent social exile'}],
+   statMod:{atk:60,str:50,def:10},
+   ability:{name:'PRIMAL TERROR',dmg:30,stun:true,desc:'Fear emission — 30 dmg + stun from overwhelming dread',stam:35}}
+];
+
+const ENEMIES=[
+  {id:'ironclad',name:'IRONCLAD MK-VII',desc:'Brute-force juggernaut. Max durability, minimal grace.',
+   faction:'APEX CORP',muts:['bone_weave','chitin','myostatin_null','pain_null'],
+   stats:{hp:200,atk:50,def:55,spd:20,dodge:5,stam:150,regen:3,aura:0},
+   abilities:[
+     {name:'CRUSHING BLOW',dmg:65,desc:'Bone-enhanced punch'},
+     {name:'IRON SHELL',dmg:0,selfDef:70,desc:'Max armor posture'},
+     {name:'SEISMIC SLAM',dmg:85,stun:true,desc:'Ground impact — stun chance'},
+   ]},
+  {id:'wraith',name:'WRAITH-DELTA',desc:'Phantom assassin. Near-impossible to hit.',
+   faction:'DARK LABS',muts:['synaptic_od','electrosense','hollow_bones','pain_null'],
+   stats:{hp:110,atk:60,def:15,spd:90,dodge:65,stam:120,regen:5,aura:0},
+   abilities:[
+     {name:'PHANTOM STRIKE',dmg:55,bypass:true,desc:'Impossible to block properly'},
+     {name:'NEURAL SPIKE',dmg:45,stun:true,desc:'Nerve cluster targeting'},
+     {name:'BLINK DODGE',dmg:0,phaseDodge:true,desc:'Guaranteed dodge next attack'},
+   ]},
+  {id:'toxic_bloom',name:'TOXIC BLOOM',desc:'Biological attrition weapon. Everything it touches dies slowly.',
+   faction:'FAILED EXPERIMENT',muts:['venom_glands','acid_saliva','acid_tissue','neurotoxin_glands'],
+   stats:{hp:140,atk:40,def:30,spd:35,dodge:20,stam:100,regen:8,aura:10},
+   abilities:[
+     {name:'VENOM SPRAY',dmg:30,poison:15,desc:'Hemotoxic coating'},
+     {name:'ACID BURST',dmg:60,armorPierce:30,desc:'Corrosive projectile'},
+     {name:'NEUROTOXIN TOUCH',dmg:25,stun:true,desc:'Paralysis — stun 2 turns'},
+   ]},
+  {id:'colossus',name:'THE COLOSSUS',desc:'The final product. Built to be unstoppable.',
+   faction:'APEX CORP',muts:['bone_weave','chitin','myostatin_null','regen_marrow','bone_spurs'],
+   stats:{hp:300,atk:70,def:80,spd:10,dodge:0,stam:200,regen:15,aura:0},
+   abilities:[
+     {name:'MASS SLAM',dmg:90,stun:true,desc:'Full 400kg body slam'},
+     {name:'SPIKE STORM',dmg:55,multiHit:2,desc:'Bone spur barrage — 2x 55 dmg'},
+     {name:'IMMOVABLE',dmg:0,selfDef:95,heal:40,desc:'Absolute defense + regen'},
+   ]},
+  {id:'mindbender',name:'MINDBENDER PRIME',desc:'A psionic predator.',
+   faction:'DARK LABS',muts:['synaptic_od','mirror_hyper','adrenal_overdrive','split_nervous'],
+   stats:{hp:130,atk:75,def:20,spd:60,dodge:45,stam:130,regen:6,aura:0},
+   abilities:[
+     {name:'MIND CRUSH',dmg:70,desc:'Neural direct damage — ignores armor'},
+     {name:'SYNAPTIC DRAIN',dmg:40,stealHp:25,desc:'Vitality drain — heals self 25'},
+     {name:'CONFUSION WAVE',dmg:30,stun:true,desc:'Neurological overload'},
+   ]},
+  {id:'failed_exp',name:'EXPERIMENT 7-OMEGA',desc:'Unstable, mutating, in agony. But still lethal.',
+   faction:'FAILED EXPERIMENT',muts:['extra_limbs','explosive_sweat','regen_marrow','bone_spurs'],
+   stats:{hp:160,atk:65,def:25,spd:45,dodge:25,stam:80,regen:20,aura:0},
+   abilities:[
+     {name:'LIMB BARRAGE',dmg:40,multiHit:3,desc:'4-armed assault — 3x 40 dmg'},
+     {name:'DETONATION',dmg:100,selfDmg:30,desc:'Explosive sweat detonation'},
+     {name:'RAPID REGEN',dmg:0,heal:50,desc:'Emergency cellular regeneration'},
+   ]},
+];
+
+const ENVIRONMENTS=[
+  {id:'standard',name:'STANDARD ARENA',icon:'⬜',desc:'Controlled environment. No modifiers.',effects:[]},
+  {id:'arctic',name:'ARCTIC TUNDRA',icon:'❄',desc:'Sub-zero temperatures. Thermal mutations stressed.',
+   effects:[
+     {target:'player',check:s=>s.genes.includes('thermogenic'),label:'THERMOGENIC: Passive regulation',buffDef:20},
+     {target:'player',check:s=>!s.genes.includes('cryo_adapt')&&!s.genes.includes('thermogenic'),label:'COLD EXPOSURE: -5 SPD/turn',statDrain:{spd:5}},
+     {target:'all',label:'SNOW COVER: +20 DODGE',buffDodge:20},
+   ]},
+  {id:'toxic_swamp',name:'TOXIC WETLANDS',icon:'☣',desc:'High ambient toxin levels. Chemical resistance tested.',
+   effects:[
+     {target:'all',label:'TOXIN EXPOSURE: +5 instab/turn',instabGain:5},
+     {target:'player',check:s=>s.genes.includes('acid_tissue'),label:'ACID TISSUE: TOXIN IMMUNE',immune:true},
+   ]},
+  {id:'emp_zone',name:'EMP DEAD ZONE',icon:'📡',desc:'High EM interference. Electroreceptors disrupted.',
+   effects:[
+     {target:'player',check:s=>s.genes.includes('electrosense'),label:'ELECTROSENSE OVERLOADED: -30 DODGE',statDrain:{dodge:30}},
+     {target:'all',label:'NEURAL STATIC: INT -20',statDrain:{int:20}},
+   ]},
+  {id:'extreme_heat',name:'VOLCANIC ZONE',icon:'🌋',desc:'Extreme heat. Armored builds suffer.',
+   effects:[
+     {target:'player',check:s=>s.genes.includes('chitin')||s.genes.includes('bone_weave'),label:'ARMOR HEAT TRAP: 15 dmg/turn',aura:-15},
+     {target:'player',check:s=>s.genes.includes('cryo_adapt'),label:'CRYO SYSTEM FAILURE: -40 DEF',statDrain:{def:40}},
+     {target:'player',check:s=>s.genes.includes('thermogenic'),label:'THERMOGENIC: THRIVES HERE',buffDef:15},
+   ]},
+];
+
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+let G={
+  biomass:25,selectedOrgan:null,filterCat:'all',
+  equippedMuts:{},combos:[],roster:[],selectedRosterIdx:null,
+  instability:0,mutationStage:0,
+  battle:null,BL:null,
+};
+
+function getList(){return Object.values(G.equippedMuts).flat();}
+function getMut(id){return MUTATIONS.find(m=>m.id===id);}
+function getOrgan(id){return ORGANS.find(o=>o.id===id);}
+function catColor(c){return{structural:'#aaa',metabolic:'#f5d000',chemical:'#3dff8f',sensory:'#1fd8e8',neurological:'#b044ff'}[c]||'#888';}
+function tierColor(t){return['#888','#3dff8f','#1fd8e8','#ff7c22','#b044ff','#ff3a3a'][t]||'#888';}
+function costMut(m){return(m.tier+1)*3;}
+function totalBMUsed(){return getList().reduce((s,id)=>{const m=getMut(id);return s+(m?costMut(m):0);},0);}
+function bmLeft(){return G.biomass-totalBMUsed();}
+
+function computeStats(){
+  let s={hp:100,atk:20,def:10,spd:60,str:15,dodge:15,int:10,stam:100,regen:0,
+         caloric:0,hydration:0,heatOutput:0,cancerRisk:0,organStress:0,neuralStrain:0,boneStress:0,aura:0,poison:0};
+  for(const id of getList()){
+    const m=getMut(id);if(!m)continue;
+    if(m.stats)for(const[k,v]of Object.entries(m.stats))s[k]=(s[k]||0)+v;
+    s.cancerRisk+=(m.cancerRisk||0);s.organStress+=(m.organStress||0);
+    s.neuralStrain+=(m.neuralStrain||0);s.boneStress+=(m.boneStress||0);
+    s.heatOutput+=(m.heatOutput||0);
+  }
+  for(const c of G.combos)if(c.statMod)for(const[k,v]of Object.entries(c.statMod))s[k]=(s[k]||0)+v;
+  s.hp=Math.max(10,Math.min(600,s.hp));s.def=Math.max(0,Math.min(95,s.def));
+  s.spd=Math.max(1,Math.min(200,s.spd));s.dodge=Math.max(0,Math.min(90,s.dodge));
+  s.regen=Math.max(0,Math.min(60,s.regen));s.stam=Math.max(50,s.stam);
+  return s;
+}
+
+function computeInstability(){
+  const list=getList();let t=0;
+  for(const id of list){const m=getMut(id);if(m)t+=m.instab||0;}
+  for(const id of list){const m=getMut(id);if(!m)continue;for(const c of(m.conflicts||[]))if(list.includes(c))t+=20;}
+  t-=G.combos.length*5;
+  return Math.max(0,Math.min(100,t));
+}
+
+function checkCombos(){
+  const list=getList();const prev=G.combos.map(c=>c.id);
+  G.combos=COMBOS.filter(c=>c.req.every(r=>list.includes(r)));
+  G.combos.forEach(c=>{if(!prev.includes(c.id)){addEvent('⚡ EMERGENT: '+c.name,'combo');pushNotif(c.name+' emerged!','combo');}});
+}
+
+function checkReqs(m){return(m.req||[]).every(r=>getList().includes(r));}
+function checkConflicts(m){return(m.conflicts||[]).some(c=>getList().includes(c));}
+
+function equipMut(id){
+  const m=getMut(id);if(!m)return;
+  const org=getOrgan(m.organ);
+  if(!G.equippedMuts[m.organ])G.equippedMuts[m.organ]=[];
+  if(G.equippedMuts[m.organ].includes(id)){unequipMut(id);return;}
+  if(G.equippedMuts[m.organ].length>=org.slots){pushNotif(org.name+' slots full!','warn');return;}
+  if(!checkReqs(m)){pushNotif('Requires: '+m.req.join(', '),'warn');return;}
+  if(checkConflicts(m)){pushNotif('Conflicts with equipped mutation!','warn');return;}
+  if(costMut(m)>bmLeft()){pushNotif('Insufficient BIOMASS!','warn');return;}
+  G.equippedMuts[m.organ].push(id);
+  addEvent('Applied: '+m.name+' → '+m.organ.toUpperCase(),'info');
+  checkCombos();G.instability=computeInstability();
+  checkInstabEvents();updateStage();renderAll();
+}
+
+function unequipMut(id){
+  const organ=(getMut(id)||{}).organ;if(!organ||!G.equippedMuts[organ])return;
+  G.equippedMuts[organ]=G.equippedMuts[organ].filter(x=>x!==id);
+  checkCombos();G.instability=computeInstability();updateStage();
+  addEvent('Removed: '+(getMut(id)||{}).name,'warn');renderAll();
+}
+
+function clearSubject(){G.equippedMuts={};G.combos=[];G.instability=0;G.mutationStage=0;updateStage();renderAll();addEvent('Subject reset','warn');}
+
+function checkInstabEvents(){
+  const i=G.instability;
+  if(i>75&&Math.random()<0.3)triggerCritEvent();
+  else if(i>50&&Math.random()<0.15)triggerMinorEvent();
+}
+
+function triggerMinorEvent(){
+  const ev=[
+    {t:'MICRO-SEIZURE',b:'Neural overload triggers brief grand mal episode. -10 INT temporarily. Subject reports visual snow and metallic taste.'},
+    {t:'TISSUE REJECTION',b:'Immune response targets latest modification. Inflammatory markers x40. Temp DEF -15. Antihistamine protocols initiated.'},
+    {t:'HORMONAL CASCADE',b:'Endocrine instability detected. Cortisol 200x baseline. Aggression and perception distortions reported.'},
+    {t:'BONE STRESS FRACTURE',b:'Skeletal modification creating stress concentration at L3 vertebra. Hairline fracture detected. Reduced mobility risk.'},
+  ][Math.floor(Math.random()*4)];
+  addEvent('⚠ INSTABILITY EVENT: '+ev.t,'danger');showModal(ev.t,ev.b);
+}
+
+function triggerCritEvent(){
+  const ev=[
+    {t:'ORGAN CASCADE FAILURE',b:'CRITICAL: Multiple organ systems entering stress cascade. Liver enzymes at 4000 IU/L. Kidneys showing acute tubular necrosis.\n\nInstability reduced 20% via emergency suppression but permanent organ damage possible.'},
+    {t:'MUTATION RUNAWAY GROWTH',b:'CRITICAL: Uncontrolled cellular replication in modified tissue. Rapid growth along left thorax. Classification: Pre-malignant.\n\nSurgical intervention required.'},
+    {t:'NEUROLOGICAL COLLAPSE',b:'CRITICAL: Synaptic overload causing progressive neural necrosis. EEG flatline in modified sectors. Loss of modified neurological function for 72 hours.\n\nReduce neural mutations recommended.'},
+    {t:'AUTOIMMUNE ATTACK',b:'CRITICAL: Immune system targeting modified tissue as foreign. WBC: 180,000/uL. T-cells attacking all mutation sites.\n\nEmergency immunosuppression initiated. High mortality risk.'},
+  ][Math.floor(Math.random()*4)];
+  addEvent('🚨 CRITICAL: '+ev.t,'danger');showModal(ev.t,ev.b);
+}
+
+const STAGES=[
+  {label:'UNMODIFIED',color:'#888',desc:'No visible modifications. Baseline human.'},
+  {label:'EARLY SIGNS',color:'#3dff8f',desc:'Subtle changes — unusual skin tone, faint vascular patterns, altered eye color.'},
+  {label:'MODERATE',color:'#f5d000',desc:'Visible deformations — bone ridges, unusual musculature, altered sensory organs.'},
+  {label:'SEVERE',color:'#ff7c22',desc:'Obvious post-human appearance. Multiple systems altered. Causes civilian panic.'},
+  {label:'EXTREME',color:'#b044ff',desc:'Barely recognizable as human. Body architecture fundamentally altered.'},
+  {label:'TRANSHUMAN',color:'#ff3a3a',desc:'Post-human organism. No longer identifiable as homo sapiens.'},
+];
+function updateStage(){const c=getList().length;G.mutationStage=c<=1?0:c<=3?1:c<=6?2:c<=9?3:c<=12?4:5;}
+
+// ═══════════════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════════════
+function renderAll(){renderBioStats();renderMutList();renderBodySvg();renderInstab();renderActiveMuts();renderCombos();renderVisualStage();renderHdr();}
+
+function renderBioStats(){
+  const s=computeStats();
+  const defs=[
+    {k:'hp',l:'VITALITY',max:600,c:'#3dff8f'},{k:'stam',l:'STAMINA',max:200,c:'#ff7c22'},
+    {k:'def',l:'DEFENSE',max:100,c:'#3a7fff'},{k:'spd',l:'SPEED',max:200,c:'#f5d000'},
+    {k:'atk',l:'ATTACK',max:200,c:'#ff3a3a'},{k:'dodge',l:'DODGE',max:90,c:'#b044ff'},
+    {k:'regen',l:'REGEN/TURN',max:60,c:'#00d4a0'},{k:'caloric',l:'CALORIC LOAD',max:500,c:'#ff8844'},
+    {k:'heatOutput',l:'HEAT OUTPUT',max:120,c:'#ff4422'},{k:'cancerRisk',l:'CANCER RISK',max:60,c:'#ff00aa'},
+    {k:'organStress',l:'ORGAN STRESS',max:200,c:'#ffaa00'},{k:'neuralStrain',l:'NEURAL STRAIN',max:150,c:'#aa44ff'},
+  ];
+  document.getElementById('bioStats').innerHTML=defs.map(d=>{
+    const v=Math.max(0,s[d.k]||0);const p=Math.min(100,(v/d.max)*100);
+    return`<div class="bstat"><div class="bstat-name">${d.l}</div><div class="bstat-track"><div class="bstat-fill" style="width:${p}%;background:${d.c}"></div></div><div class="bstat-val">${v}</div></div>`;
+  }).join('');
+}
+
+function renderMutList(){
+  const organ=G.selectedOrgan;
+  document.getElementById('organLabel').textContent=organ?(getOrgan(organ)||{}).name||organ:'SELECT ORGAN';
+  const list=document.getElementById('mutList');
+  const equipped=getList();
+  const filtered=MUTATIONS.filter(m=>G.filterCat==='all'||m.cat===G.filterCat);
+  list.innerHTML=filtered.map(m=>{
+    const isEq=equipped.includes(m.id);
+    const isConf=!isEq&&checkConflicts(m);
+    const reqsMet=checkReqs(m);
+    const canAfford=isEq||costMut(m)<=bmLeft();
+    const orgFull=!isEq&&(G.equippedMuts[m.organ]||[]).length>=(getOrgan(m.organ)||{slots:3}).slots;
+    const locked=!isEq&&(!reqsMet||isConf||!canAfford||orgFull);
+    const tc=tierColor(m.tier);
+    return`<div class="mut-card${isEq?' equipped':''}${isConf?' incompatible':locked?' locked':''}"
+      onmouseenter="showTip(event,'${m.id}')" onmouseleave="hideTip()">
+      <div class="mc-top">
+        <div class="mc-name" style="color:${isEq?'var(--green)':isConf?'var(--red)':'var(--text2)'}">${m.icon} ${m.name}</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+          <div class="mc-tier" style="border-color:${tc};color:${tc}">${TIERS[m.tier]}</div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--dim)">${costMut(m)} BM · ${m.organ.toUpperCase()}</div>
+        </div>
+      </div>
+      <div class="mc-cat" style="color:${catColor(m.cat)}">${m.cat.toUpperCase()}</div>
+      <div class="mc-sci">${m.sci.substring(0,110)}...</div>
+      <div class="mc-effects">
+        ${m.pros.map(p=>`<span class="eff pos">${p}</span>`).join('')}
+        ${m.cons.map(c=>`<span class="eff neg">${c}</span>`).join('')}
+      </div>
+      <div class="mc-res">
+        <span class="res-pill">INSTAB +${m.instab}</span>
+        <span class="res-pill">CANCER +${m.cancerRisk}%</span>
+        <span class="res-pill">ORGAN +${m.organStress}</span>
+        ${m.req&&m.req.length?`<span class="res-pill" style="color:var(--orange)">REQ: ${m.req.map(r=>(getMut(r)||{}).name||r).join(', ')}</span>`:''}
+      </div>
+      <div style="margin-top:8px;display:flex;justify-content:flex-end">
+        <button class="btn ${isEq?'btn-r':'btn-g'}" style="font-size:8px;padding:5px 12px"
+          onclick="equipMut('${m.id}')" ${locked?'disabled title="Cannot equip"':''}>
+          ${isEq?'REMOVE':'APPLY'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderBodySvg(){
+  const eq=getList();const ov=document.getElementById('svgMutOverlay');ov.innerHTML='';
+  const c=eq.length;
+  const bodyColor=`rgb(${Math.min(255,15+c*10)},${Math.max(20,60-c*3)},${Math.max(10,30-c*2)})`;
+  const strokeColor=c>8?'#ff3a3a':c>4?'#ffaa00':'#2a5a3a';
+  ['svgHead','svgTorso','svgLArm','svgRArm','svgLLeg','svgRLeg'].forEach(id=>{
+    const el=document.getElementById(id);if(el){el.setAttribute('fill',bodyColor);el.setAttribute('stroke',strokeColor);}
+  });
+  if(eq.includes('chitin'))ov.innerHTML+=`<g opacity="0.7"><polygon points="70,68 90,68 80,85" fill="#666" stroke="#888" stroke-width="0.5"/><polygon points="46,80 66,80 56,95" fill="#666" stroke="#888" stroke-width="0.5"/><polygon points="94,80 114,80 104,95" fill="#666" stroke="#888" stroke-width="0.5"/></g>`;
+  if(eq.includes('bone_spurs'))ov.innerHTML+=`<g fill="#e8e8e0" opacity="0.9"><polygon points="18,76 22,58 26,76"/><polygon points="28,76 32,60 36,76"/><polygon points="117,76 121,58 125,76"/><polygon points="127,76 131,60 135,76"/><polygon points="70,68 74,50 78,68"/></g>`;
+  if(eq.includes('thermogenic'))ov.innerHTML+=Array.from({length:6},(_,i)=>`<circle cx="${50+i*12}" cy="${90+i%2*20}" r="3" fill="#ff4400" opacity="0.4"><animate attributeName="opacity" values="0;0.8;0" dur="${1+i*0.2}s" repeatCount="indefinite"/></circle>`).join('');
+  if(eq.includes('extra_limbs'))ov.innerHTML+=`<rect x="0" y="90" width="16" height="55" rx="6" fill="${bodyColor}" stroke="${strokeColor}" stroke-width="1.5"/><rect x="144" y="90" width="16" height="55" rx="6" fill="${bodyColor}" stroke="${strokeColor}" stroke-width="1.5"/>`;
+  const eyeColor=eq.includes('thermal_vision')?'#ffaa00':eq.includes('electrosense')?'#1fd8e8':eq.includes('night_vision')?'#aaaaff':'rgba(61,255,143,0.7)';
+  document.getElementById('svgEyeL').setAttribute('fill',eyeColor);
+  document.getElementById('svgEyeR').setAttribute('fill',eyeColor);
+  if(eq.some(id=>['synaptic_od','split_nervous','mirror_hyper'].includes(id))){
+    document.getElementById('svgNeuro').style.opacity='0.8';
+    ov.innerHTML+=`<ellipse cx="80" cy="38" rx="30" ry="34" fill="none" stroke="#b044ff" stroke-width="1" opacity="0.5"><animate attributeName="stroke-opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite"/></ellipse>`;
+  }else{document.getElementById('svgNeuro').style.opacity='0.3';}
+  document.getElementById('svgVeins').style.opacity=eq.includes('regen_marrow')?'0.6':'0';
+  if(G.instability>70)ov.innerHTML+=Array.from({length:3},(_,i)=>`<circle cx="${45+i*35}" cy="${80+i*30}" r="6" fill="#ff3a3a" opacity="0.12"><animate attributeName="r" values="6;10;6" dur="${0.8+i*0.3}s" repeatCount="indefinite"/></circle>`).join('');
+  ORGANS.forEach(org=>{
+    const ob=document.getElementById('ob-'+org.id);if(!ob)return;
+    const slots=G.equippedMuts[org.id]||[];
+    ob.classList.remove('has-mutation','unstable','selected');
+    if(slots.length>0)ob.classList.add('has-mutation');
+    if(G.selectedOrgan===org.id)ob.classList.add('selected');
+  });
+}
+
+function renderInstab(){
+  const i=G.instability;
+  const fill=document.getElementById('instabFill');
+  const color=i>75?'#ff3a3a':i>50?'#ff7c22':i>25?'#f5d000':'#3dff8f';
+  fill.style.width=i+'%';fill.style.background=`linear-gradient(90deg,${color}88,${color})`;
+  document.getElementById('instabVal').textContent=i+'%';
+  document.getElementById('instabVal').style.color=color;
+  document.getElementById('instabLabel').textContent=i>75?'CRITICAL':i>50?'DANGEROUS':i>25?'ELEVATED':'STABLE';
+  document.getElementById('instabLabel').style.color=color;
+  const s=computeStats();const r=[];
+  if(s.cancerRisk>15)r.push(`<div style="color:var(--red)">🦀 CANCER RISK: ${s.cancerRisk}%</div>`);
+  if(s.organStress>80)r.push(`<div style="color:var(--red)">⚠ ORGAN STRESS HIGH</div>`);
+  if(s.neuralStrain>60)r.push(`<div style="color:var(--red)">⚡ NEURAL STRAIN: SEIZURE RISK</div>`);
+  if(s.boneStress>20)r.push(`<div style="color:var(--red)">🦴 BONE FRACTURE RISK</div>`);
+  document.getElementById('instabRisks').innerHTML=r.join('');
+}
+
+function renderActiveMuts(){
+  const eq=getList();
+  document.getElementById('activeMutCount').textContent=eq.length;
+  document.getElementById('mutCountHdr').textContent=eq.length;
+  const list=document.getElementById('activeMutList');
+  if(!eq.length){list.innerHTML='<div style="font-family:var(--mono);font-size:9px;color:var(--dim);text-align:center;padding:8px">No mutations applied</div>';return;}
+  list.innerHTML=eq.map(id=>{const m=getMut(id);if(!m)return'';return`<div class="am-row"><span class="am-name" style="color:${tierColor(m.tier)}">${m.icon} ${m.name}</span><button class="am-remove" onclick="unequipMut('${id}')">✕</button></div>`;}).join('');
+}
+
+function renderCombos(){
+  const cd=document.getElementById('comboDisplay');
+  if(!G.combos.length){cd.innerHTML='<div style="font-family:var(--mono);font-size:8px;color:var(--dim);text-align:center;padding:8px">Combine mutations to trigger emergent effects...</div>';return;}
+  cd.innerHTML=G.combos.map(c=>`<div class="cu-card"><div class="cu-name">${c.name}</div><div style="font-family:var(--mono);font-size:8px;color:var(--dim);margin-bottom:4px">${c.rarity.toUpperCase()}</div><div class="cu-desc">${c.sci.substring(0,100)}...</div><div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px">${c.effects.map(e=>`<span class="eff ${e.t}">${e.l}</span>`).join('')}</div>${c.ability?`<div style="font-family:var(--mono);font-size:8px;color:var(--yellow);margin-top:4px">⚡ ${c.ability.name}: ${c.ability.desc}</div>`:''}</div>`).join('');
+}
+
+function renderVisualStage(){
+  const st=STAGES[G.mutationStage]||STAGES[0];
+  const changes=getList().map(id=>(getMut(id)||{}).visChange).filter(Boolean);
+  document.getElementById('visualStage').innerHTML=`<div style="font-family:var(--display);font-size:16px;letter-spacing:3px;color:${st.color};margin-bottom:4px">${st.label}</div><div style="font-family:var(--mono);font-size:8px;color:var(--text);margin-bottom:6px">${st.desc}</div>${changes.length?`<div style="font-family:var(--mono);font-size:8px;color:var(--dim)">• ${changes.join('<br>• ')}</div>`:''}`;
+}
+
+function renderHdr(){document.getElementById('resDisplay').textContent=`BIOMASS: ${bmLeft()} / ${G.biomass} | INSTABILITY: ${G.instability}%`;}
+
+function addEvent(msg,type='info'){
+  const log=document.getElementById('eventLog');const d=document.createElement('div');
+  d.className='ev '+type;d.textContent=msg;log.appendChild(d);log.scrollTop=log.scrollHeight;
+}
+
+function showTip(e,id){
+  const m=getMut(id);if(!m)return;
+  document.getElementById('tipName').textContent=m.icon+' '+m.name;
+  document.getElementById('tipSci').textContent=m.sci;
+  document.getElementById('tipStats').innerHTML=Object.entries(m.stats||{}).map(([k,v])=>`${k}: ${v>0?'+':''}${v}`).join(' | ');
+  const tip=document.getElementById('tip');tip.style.display='block';moveTip(e);
+  document.addEventListener('mousemove',moveTip);
+}
+function hideTip(){document.getElementById('tip').style.display='none';document.removeEventListener('mousemove',moveTip);}
+function moveTip(e){const tip=document.getElementById('tip');let x=e.clientX+14,y=e.clientY+14;if(x+270>window.innerWidth)x=e.clientX-280;if(y+210>window.innerHeight)y=e.clientY-220;tip.style.left=x+'px';tip.style.top=y+'px';}
+function showModal(title,body){document.getElementById('modalTitle').textContent=title;document.getElementById('modalBody').textContent=body;document.getElementById('modal').classList.add('on');}
+function pushNotif(msg,type='ok'){const s=document.getElementById('notifStack');const d=document.createElement('div');d.className='notif '+type;d.textContent=msg;s.appendChild(d);setTimeout(()=>d.remove(),3500);}
+
+function selectOrgan(id){
+  G.selectedOrgan=G.selectedOrgan===id?null:id;
+  renderMutList();renderBodySvg();
+  // Auto-switch to mutations pane on mobile when organ selected
+  if(window.innerWidth<=768&&id){
+    const btn=document.querySelector('.mob-pane-btn:nth-child(2)');
+    if(btn)switchLabPane('mutations',btn);
+  }
+}
+function setFilter(cat,btn){G.filterCat=cat;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderMutList();}
+
+function saveRoster(){
+  const name=document.getElementById('subjectName').value||'SUBJECT';
+  const genes=getList();if(!genes.length){pushNotif('No mutations to save!','warn');return;}
+  const stats=computeStats();
+  G.roster.push({id:Date.now(),name,genes,combos:[...G.combos],stats,stage:G.mutationStage,instability:G.instability});
+  pushNotif(name+' saved to roster!','ok');addEvent('"'+name+'" archived to roster','success');
+}
+
+function renderRoster(){
+  const grid=document.getElementById('rosterGrid');
+  if(!G.roster.length){grid.innerHTML='<div style="font-family:var(--mono);font-size:10px;color:var(--dim);padding:20px">No subjects. Create and save one in the Lab.</div>';return;}
+  grid.innerHTML=G.roster.map((s,i)=>{const st=STAGES[s.stage]||STAGES[0];
+    return`<div class="rc${G.selectedRosterIdx===i?' sel':''}" onclick="selectRoster(${i})">
+      <div class="rc-name">${s.name}</div>
+      <div style="font-family:var(--mono);font-size:9px;color:${st.color};margin-bottom:6px">${st.label} · INSTAB: ${s.instability}%</div>
+      <div style="font-family:var(--mono);font-size:8px;color:var(--dim);margin-bottom:8px">${s.genes.length} mutations · ${s.combos.length} combos</div>
+      <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px">${s.genes.map(g=>{const m=getMut(g);return m?`<span style="font-family:var(--mono);font-size:9px;padding:1px 5px;border:1px solid var(--border);color:var(--dim)">${m.icon}</span>`:''}).join('')}</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text2)">HP:${s.stats.hp} ATK:${s.stats.atk} DEF:${s.stats.def} SPD:${s.stats.spd}</div>
+      ${s.combos.length?`<div style="font-family:var(--mono);font-size:8px;color:var(--yellow);margin-top:5px">⚡ ${s.combos.map(c=>c.name).join(' · ')}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function selectRoster(i){G.selectedRosterIdx=i;renderRoster();renderBattleInfo();}
+function renderBattleInfo(){
+  const info=document.getElementById('battleSubjectInfo');
+  if(G.selectedRosterIdx===null){info.textContent='Select subject from Roster tab, then return here to deploy.';return;}
+  const s=G.roster[G.selectedRosterIdx];
+  info.innerHTML=`SELECTED: <span style="color:var(--green)">${s.name}</span> | ${s.genes.length} mutations | ${s.combos.length} combos | HP: ${s.stats.hp} | INSTAB: ${s.instability}%`;
+}
+
+function renderCodex(){
+  document.getElementById('codexGrid').innerHTML=MUTATIONS.map(m=>{const tc=tierColor(m.tier);
+    return`<div class="mut-card" style="cursor:default">
+      <div class="mc-top"><div class="mc-name" style="color:var(--text2)">${m.icon} ${m.name}</div><div class="mc-tier" style="border-color:${tc};color:${tc}">${TIERS[m.tier]}</div></div>
+      <div class="mc-cat" style="color:${catColor(m.cat)}">${m.cat.toUpperCase()} · ${m.organ.toUpperCase()}</div>
+      <div class="mc-sci">${m.sci}</div>
+      <div class="mc-effects">${m.pros.map(p=>`<span class="eff pos">${p}</span>`).join('')}${m.cons.map(c=>`<span class="eff neg">${c}</span>`).join('')}</div>
+      <div class="mc-res">
+        <span class="res-pill">INSTAB +${m.instab}</span><span class="res-pill">CANCER +${m.cancerRisk}%</span>
+        ${m.req&&m.req.length?`<span class="res-pill" style="color:var(--orange)">REQ: ${m.req.map(r=>(getMut(r)||{}).name||r).join(', ')}</span>`:''}
+        ${m.conflicts&&m.conflicts.length?`<span class="res-pill" style="color:var(--red)">CONFLICTS: ${m.conflicts.map(r=>(getMut(r)||{}).name||r).join(', ')}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  BATTLE
+// ═══════════════════════════════════════════════════════
+function populateSelects(){
+  document.getElementById('enemySelect').innerHTML='<option value="">— SELECT ENEMY —</option>'+ENEMIES.map(e=>`<option value="${e.id}">[${e.faction}] ${e.name}</option>`).join('');
+  document.getElementById('envSelect').innerHTML=ENVIRONMENTS.map(e=>`<option value="${e.id}">${e.icon} ${e.name}</option>`).join('');
+}
+
+function calcDmg(base,def){return Math.max(1,Math.round(base*(0.8+Math.random()*0.4)*(1-(def/200))));}
+
+function buildAbilities(subject){
+  const abs=[{name:'BASIC STRIKE',dmg:subject.stats.atk,stam:8,desc:'Standard strike'}];
+  if(subject.genes.includes('venom_glands'))abs.push({name:'VENOM STRIKE',dmg:25,poison:15,stam:15,desc:'25 dmg + 15/turn poison'});
+  if(subject.genes.includes('acid_saliva'))abs.push({name:'ACID SPIT',dmg:35,armorPierce:25,stam:20,desc:'35 dmg + corrode -25% DEF'});
+  if(subject.genes.includes('neurotoxin_glands'))abs.push({name:'NEUROTOXIN',dmg:20,stun:true,stam:25,desc:'20 dmg + stun'});
+  if(subject.genes.includes('thermogenic'))abs.push({name:'HEAT BURST',dmg:30,burning:10,stam:20,desc:'30 dmg + 10/turn burning'});
+  if(subject.genes.includes('explosive_sweat'))abs.push({name:'DETONATE',dmg:80,selfDmg:30,stam:60,desc:'80 dmg, 30 self-damage'});
+  if(subject.genes.includes('regen_marrow'))abs.push({name:'REGEN BURST',dmg:0,heal:35,stam:30,desc:'Heal 35 HP instantly'});
+  if(subject.genes.includes('bone_spurs'))abs.push({name:'SPIKE TACKLE',dmg:40,stam:18,desc:'Bone spike charge — 40 dmg'});
+  if(subject.genes.includes('adrenal_overdrive'))abs.push({name:'ADRENAL SURGE',dmg:60,selfBerserk:true,stam:50,desc:'60 dmg, enter BERSERK'});
+  if(subject.genes.includes('cryo_adapt'))abs.push({name:'CRYOSTASIS',dmg:0,selfDef:80,stam:35,desc:'80% dmg reduction this turn'});
+  subject.combos.forEach(c=>{if(c.ability)abs.push({...c.ability,isCombo:true,comboName:c.name});});
+  return abs;
+}
+
+function startBattle(){
+  const eid=document.getElementById('enemySelect').value;
+  if(!eid){pushNotif('Select an enemy!','warn');return;}
+  if(G.selectedRosterIdx===null){pushNotif('Select a subject from Roster!','warn');return;}
+  const sub=G.roster[G.selectedRosterIdx];
+  const enemy=ENEMIES.find(e=>e.id===eid);
+  const env=ENVIRONMENTS.find(e=>e.id===document.getElementById('envSelect').value)||ENVIRONMENTS[0];
+  const pMod={def:0,spd:0,dodge:0};let pInstabGain=0;const envMsgs=[];let envAura=0;
+  env.effects.forEach(ef=>{
+    const applies=!ef.check||ef.check(sub);if(!applies)return;
+    if(ef.buffDef)pMod.def+=ef.buffDef;if(ef.buffDodge)pMod.dodge+=ef.buffDodge;
+    if(ef.statDrain)for(const[k,v]of Object.entries(ef.statDrain))pMod[k]=(pMod[k]||0)-v;
+    if(ef.instabGain)pInstabGain=ef.instabGain;if(ef.aura)envAura+=ef.aura;
+    envMsgs.push(ef.label);
+  });
+  const pStats={...sub.stats};for(const[k,v]of Object.entries(pMod))pStats[k]=(pStats[k]||0)+v;
+  G.battle={
+    active:true,sub,enemy,env,
+    pHP:pStats.hp,pMaxHP:pStats.hp,eHP:enemy.stats.hp,eMaxHP:enemy.stats.hp,
+    pStam:pStats.stam||100,pMaxStam:pStats.stam||100,
+    eStam:enemy.stats.stam||150,pHun:100,
+    pStats,eStats:{...enemy.stats},round:1,
+    pStatus:[],eStatus:[],pPoison:0,ePoison:0,
+    pAura:(pStats.aura||0)+Math.min(0,envAura),eAura:enemy.stats.aura||0,
+    pPhaseDodge:false,ePhaseDodge:false,pArmorStrip:0,eArmorStrip:0,
+    pInstab:sub.instability,pInstabGain,envMsgs,abilities:buildAbilities(sub),
+    pDefStance:0,eDefStance:0,eBurning:0,
+  };
+  document.getElementById('battleArea').style.display='grid';
+  document.getElementById('battleBottom').style.display='grid';
+  document.getElementById('pName').textContent=sub.name;
+  document.getElementById('eName').textContent=enemy.name;
+  document.getElementById('eMutTags').textContent='MUTATIONS: '+enemy.muts.map(m=>(getMut(m)||{}).name||m).join(' · ');
+  document.getElementById('envLabel').textContent=env.icon+' '+env.name;
+  G.BL=document.getElementById('battleLog');G.BL.innerHTML='';
+  const ep=document.getElementById('envPane');
+  ep.innerHTML=`<div style="font-family:var(--mono);font-size:9px;color:var(--cyan);letter-spacing:2px;margin-bottom:8px">ENVIRONMENT</div>
+    <div class="env-card"><div class="env-name">${env.icon} ${env.name}</div><div class="env-desc">${env.desc}</div>
+    <div style="margin-top:8px">${envMsgs.map(m=>`<div style="font-family:var(--mono);font-size:8px;color:var(--orange)">▸ ${m}</div>`).join('')}</div></div>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--cyan);letter-spacing:2px;margin:12px 0 6px">ACTIVE COMBOS</div>
+    ${sub.combos.map(c=>`<div class="env-card" style="border-color:var(--yellow);margin-bottom:6px"><div class="env-name" style="color:var(--yellow)">${c.name}</div><div class="env-desc">${c.ability?c.ability.desc:''}</div></div>`).join('')}`;
+  renderPAbilities();
+  blog(`// BATTLE: ${sub.name} VS ${enemy.name} | ${env.name} //`,'sys');
+  envMsgs.forEach(m=>blog('ENV: '+m,'sys'));
+  updateBattleUI();
+}
+
+function renderPAbilities(){
+  const b=G.battle;
+  document.getElementById('pAbilities').innerHTML=b.abilities.map((a,i)=>
+    `<button class="ab-btn${a.isCombo?' combo':''}" onclick="playerAct(${i})">
+      <span>${a.isCombo?'⚡ ':''}"${a.name}"${a.isCombo?` (${a.comboName})`:''}</span>
+      <span class="ab-cost">${a.dmg?a.dmg+'dmg':''}${a.heal?'+'+a.heal+'hp':''}${(a.selfDef&&!a.dmg&&!a.heal)?a.selfDef+'%def':''} [${a.stam||0}STA]</span>
+    </button>`).join('');
+}
+
+function playerAct(idx){
+  const b=G.battle;if(!b||!b.active)return;
+  if(b.pStatus.includes('stunned')){blog(b.sub.name+' is STUNNED!','p');b.pStatus=b.pStatus.filter(s=>s!=='stunned');afterPlayer();return;}
+  const ab=b.abilities[idx];
+  if((ab.stam||0)>b.pStam){pushNotif('Insufficient STAMINA!','warn');return;}
+  b.pStam-=(ab.stam||0);b.pHun=Math.max(0,b.pHun-(ab.stam||0)*0.3);
+  b.pPhaseDodge=false;b.pDefStance=0;
+  if(ab.phaseDodge){b.pPhaseDodge=true;blog(b.sub.name+' enters PHASE PREDICT — next attack DODGED + COUNTERED!','p');}
+  else if(ab.selfDef&&!ab.dmg&&!ab.heal){b.pDefStance=ab.selfDef;blog(b.sub.name+' uses '+ab.name+' — DEFENSE '+ab.selfDef+'%','p');}
+  else if(ab.heal){const h=Math.min(ab.heal,b.pMaxHP-b.pHP);b.pHP+=h;blog(b.sub.name+' '+ab.name+' — HEALED '+h+' HP!','p');}
+  else{
+    const eDodge=b.ePhaseDodge?100:(b.eStats.dodge||0);
+    b.ePhaseDodge=false;
+    if(Math.random()*100<eDodge){blog(b.enemy.name+' DODGES '+ab.name+'!','e');}
+    else{
+      const isCrit=Math.random()<0.12;
+      let def=Math.max(0,(b.eStats.def||10)-(b.eArmorStrip||0));
+      let dmg=calcDmg(ab.dmg*(ab.multiHit?1:1)*(isCrit?1.85:1),def);
+      if(ab.bypass)dmg=Math.round(dmg*1.5);
+      if(ab.multiHit){let tot=0;for(let h=0;h<ab.multiHit;h++)tot+=calcDmg(ab.dmg*(isCrit?1.85:1),def);dmg=tot;b.eHP-=tot;blog(b.sub.name+' '+ab.name+' — MULTI HIT '+tot+' total dmg!',isCrit?'crit':'p');}
+      else{b.eHP-=dmg;blog(isCrit?'CRITICAL HIT! '+b.sub.name+' '+ab.name+': '+dmg+' dmg!':b.sub.name+' '+ab.name+' — '+dmg+' dmg.',isCrit?'crit':'p');}
+      if(ab.armorPierce){b.eArmorStrip+=ab.armorPierce;blog('Armor corroded! Enemy DEF -'+ab.armorPierce,'combo');}
+      if(ab.poison){b.ePoison=(b.ePoison||0)+ab.poison;blog(b.enemy.name+' POISONED: +'+ab.poison+'/turn','combo');}
+      if(ab.burning){b.eBurning=(b.eBurning||0)+ab.burning;blog(b.enemy.name+' BURNING: +'+ab.burning+'/turn','combo');}
+      if(ab.stun&&Math.random()<0.6){b.eStatus.push('stunned');blog(b.enemy.name+' STUNNED!','combo');}
+      if(ab.selfDmg){b.pHP-=ab.selfDmg;blog(b.sub.name+' self-damage: '+ab.selfDmg,'p');}
+      if(ab.selfBerserk){b.pStatus.push('berserk');blog(b.sub.name+' enters BERSERK STATE!','combo');}
+    }
+  }
+  if(b.pStats.regen){const r=Math.min(b.pStats.regen,b.pMaxHP-b.pHP);b.pHP+=r;if(r>0)blog(b.sub.name+' REGEN +'+r+' HP','p');}
+  if(b.pInstabGain){b.pInstab=Math.min(100,b.pInstab+b.pInstabGain);}
+  if(b.pInstab>80&&Math.random()<0.15){blog('⚠ INSTABILITY: MUTATION REJECTION — '+b.sub.name+' takes 20 dmg!','fail');b.pHP-=20;}
+  if(b.eHP<=0){endBattle(true);return;}
+  if(b.pHP<=0){endBattle(false);return;}
+  afterPlayer();
+}
+
+function afterPlayer(){setTimeout(()=>enemyTurn(),650);}
+
+function enemyTurn(){
+  const b=G.battle;if(!b||!b.active)return;
+  if(b.pPoison>0){b.pHP-=b.pPoison;blog(b.sub.name+' POISON -'+b.pPoison+' HP','e');}
+  if(b.ePoison>0){b.eHP-=b.ePoison;blog(b.enemy.name+' POISON -'+b.ePoison+' HP','p');}
+  if(b.eBurning>0){b.eHP-=b.eBurning;blog(b.enemy.name+' BURNING -'+b.eBurning+' HP','p');}
+  if(b.eAura>0){b.pHP-=b.eAura;blog(b.enemy.name+' AURA -'+b.eAura+' to '+b.sub.name,'e');}
+  if(b.pAura<0){b.pHP+=b.pAura;blog('ENV effect: '+b.pAura+' HP from environment','fail');}
+  if(b.eHP<=0){endBattle(true);return;}if(b.pHP<=0){endBattle(false);return;}
+  if(b.eStatus.includes('stunned')){blog(b.enemy.name+' is STUNNED!','e');b.eStatus=b.eStatus.filter(s=>s!=='stunned');}
+  else{
+    const ab=b.enemy.abilities[Math.floor(Math.random()*b.enemy.abilities.length)];
+    if(ab.selfDef||ab.heal){
+      blog(b.enemy.name+' uses '+ab.name+' — defensive!','e');b.eDefStance=ab.selfDef||0;
+      if(ab.heal){const h=Math.min(ab.heal,b.eMaxHP-b.eHP);b.eHP+=h;blog(b.enemy.name+' REGEN +'+h+' HP','e');}
+    }else{
+      const pDodge=b.pPhaseDodge?100:Math.min(90,(b.pStats.dodge||0)+(b.pHun<20?-15:0));
+      if(Math.random()*100<pDodge){
+        blog(b.sub.name+' DODGES '+b.enemy.name+' '+ab.name+'!','p');
+        if(b.pPhaseDodge){const c=calcDmg(b.pStats.atk,b.eStats.def-(b.eArmorStrip||0));b.eHP-=c;blog('COUNTER-ATTACK: '+b.sub.name+' retaliates '+c+' dmg!','crit');}
+        b.pPhaseDodge=false;
+      }else{
+        b.pPhaseDodge=false;
+        const defMult=b.pDefStance?1-b.pDefStance/100:1;b.pDefStance=0;
+        const isCrit=Math.random()<0.09;
+        let def=Math.max(0,(b.pStats.def||10)-(b.pArmorStrip||0));def=Math.max(0,def*defMult);
+        if(ab.multiHit){let tot=0;for(let h=0;h<ab.multiHit;h++)tot+=calcDmg(ab.dmg*(isCrit?1.8:1),def);b.pHP-=tot;blog(b.enemy.name+' '+ab.name+' MULTI HIT '+tot+' total!',isCrit?'crit':'e');}
+        else{let dmg=calcDmg(ab.dmg*(isCrit?1.8:1),def);if(ab.bypass)dmg=Math.round(dmg*1.4);b.pHP-=dmg;blog(isCrit?'CRITICAL! '+b.enemy.name+' '+ab.name+': '+dmg+'!':b.enemy.name+' '+ab.name+' — '+dmg+' dmg.',isCrit?'crit':'e');}
+        if(ab.stealHp){const s=Math.min(ab.stealHp,b.eMaxHP-b.eHP);b.eHP+=s;blog(b.enemy.name+' DRAINS '+s+' HP!','e');}
+        if(ab.poison){b.pPoison=(b.pPoison||0)+ab.poison;blog(b.sub.name+' POISONED!','e');}
+        if(ab.stun&&Math.random()<0.5){b.pStatus.push('stunned');blog(b.sub.name+' STUNNED!','e');}
+      }
+    }
+  }
+  if(b.eStats.regen){const r=Math.min(b.eStats.regen,b.eMaxHP-b.eHP);b.eHP+=r;}
+  b.round++;document.getElementById('roundTxt').textContent='ROUND '+b.round;
+  if(b.pHP<=0){endBattle(false);return;}if(b.eHP<=0){endBattle(true);return;}
+  updateBattleUI();
+}
+
+function endBattle(win){
+  const b=G.battle;b.active=false;b.pHP=Math.max(0,b.pHP);b.eHP=Math.max(0,b.eHP);updateBattleUI();
+  document.querySelectorAll('#pAbilities button').forEach(bt=>bt.disabled=true);
+  if(win){blog('// VICTORY — '+b.sub.name+' DEFEATS '+b.enemy.name+' //','combo');pushNotif('VICTORY! +6 BIOMASS awarded','ok');G.biomass+=6;renderHdr();}
+  else{blog('// DEFEAT — '+b.sub.name+' HAS FALLEN //','e');pushNotif('DEFEAT. Subject lost.','bad');}
+}
+
+function resetBattle(){if(G.battle)G.battle.active=false;G.battle=null;document.getElementById('battleArea').style.display='none';document.getElementById('battleBottom').style.display='none';document.getElementById('battleLog').innerHTML='<div class="blog-entry sys">// COMBAT SYSTEMS ONLINE //</div>';}
+
+function updateBattleUI(){
+  const b=G.battle;if(!b)return;
+  const pp=Math.max(0,b.pHP/b.pMaxHP*100),ep=Math.max(0,b.eHP/b.eMaxHP*100);
+  const sp=Math.max(0,b.pStam/b.pMaxStam*100);
+  document.getElementById('pHpBar').style.width=pp+'%';document.getElementById('eHpBar').style.width=ep+'%';
+  document.getElementById('pStamBar').style.width=sp+'%';
+  document.getElementById('pHunBar').style.width=b.pHun+'%';
+  document.getElementById('pHpTxt').textContent=Math.max(0,Math.round(b.pHP))+'/'+b.pMaxHP;
+  document.getElementById('eHpTxt').textContent=Math.max(0,Math.round(b.eHP))+'/'+b.eMaxHP;
+  document.getElementById('pStamTxt').textContent=Math.max(0,Math.round(b.pStam));
+  document.getElementById('eStamTxt').textContent=Math.max(0,Math.round(b.eStam));
+  document.getElementById('pHunTxt').textContent=Math.round(b.pHun)+'%';
+  document.getElementById('pStatus').innerHTML=[
+    b.pPoison>0?`<span class="stag poison">☠ POISON ${b.pPoison}/t</span>`:'',
+    b.pStatus.includes('stunned')?'<span class="stag stun">⚡ STUNNED</span>':'',
+    b.pStatus.includes('berserk')?'<span class="stag berserk">🔴 BERSERK</span>':'',
+    b.pPhaseDodge?'<span class="stag phase">◈ PHASE DODGE</span>':'',
+    b.pHun<20?'<span class="stag hunger">⚠ STARVING</span>':'',
+    b.pInstab>70?`<span class="stag instab">☢ UNSTABLE ${Math.round(b.pInstab)}%</span>`:'',
+  ].join('');
+  document.getElementById('eStatus').innerHTML=[
+    b.ePoison>0?`<span class="stag poison">☠ POISON ${b.ePoison}/t</span>`:'',
+    b.eStatus.includes('stunned')?'<span class="stag stun">⚡ STUNNED</span>':'',
+    b.eBurning>0?`<span class="stag burning">🔥 BURN ${b.eBurning}/t</span>`:'',
+    b.eArmorStrip>0?`<span class="stag instab">ARMOR -${b.eArmorStrip}</span>`:'',
+  ].join('');
+}
+
+function blog(msg,type='sys'){if(!G.BL)return;const d=document.createElement('div');d.className='blog-entry '+type;d.textContent=`[R${G.battle?G.battle.round:1}] ${msg}`;G.BL.appendChild(d);G.BL.scrollTop=G.BL.scrollHeight;}
+
+function switchTab(tab,btn){
+  document.getElementById('tab-lab').style.display='none';
+  ['battle','roster','codex'].forEach(t=>document.getElementById('tab-'+t).classList.remove('on'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
+  if(tab==='lab'){
+    document.getElementById('tab-lab').style.display='flex';
+    // Ensure at least one pane is visible on mobile
+    const anyActive=document.querySelector('.pane.mob-active');
+    if(!anyActive){const first=document.getElementById('lab-pane-body');if(first)first.classList.add('mob-active');}
+  }
+  else document.getElementById('tab-'+tab).classList.add('on');
+  btn.classList.add('on');
+  if(tab==='roster')renderRoster();if(tab==='codex')renderCodex();if(tab==='battle')renderBattleInfo();
+}
+
+function switchLabPane(pane,btn){
+  const map={body:'lab-pane-body',mutations:'lab-pane-mutations',biology:'lab-pane-biology'};
+  Object.values(map).forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('mob-active');});
+  document.querySelectorAll('.mob-pane-btn').forEach(b=>b.classList.remove('on'));
+  const target=document.getElementById(map[pane]);
+  if(target)target.classList.add('mob-active');
+  if(btn)btn.classList.add('on');
+}
+
+// INIT
+populateSelects();renderAll();renderBattleInfo();
+</script>
+</body>
+</html>
