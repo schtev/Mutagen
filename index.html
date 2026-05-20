@@ -1150,4 +1150,1496 @@ function triggerMinorEvent(){
 }
 function triggerCritEvent(){
   const ev=[
-    {t:'ORGAN CASCADE FAILURE',b:'CRIT
+    {t:'ORGAN CASCADE FAILURE',b:'CRITICAL: Multiple organ systems entering stress cascade. Liver enzymes at 4000 IU/L. Kidneys showing acute tubular necrosis.\n\nInstability reduced 20% via emergency suppression but permanent organ damage possible.'},
+    {t:'MUTATION RUNAWAY GROWTH',b:'CRITICAL: Uncontrolled cellular replication in modified tissue. Rapid growth along left thorax. Classification: Pre-malignant.\n\nSurgical intervention required.'},
+    {t:'NEUROLOGICAL COLLAPSE',b:'CRITICAL: Synaptic overload causing progressive neural necrosis. EEG flatline in modified sectors. Loss of modified neurological function for 72 hours.\n\nReduce neural mutations recommended.'},
+    {t:'AUTOIMMUNE ATTACK',b:'CRITICAL: Immune system targeting modified tissue as foreign. WBC: 180,000/uL. T-cells attacking all mutation sites.\n\nEmergency immunosuppression initiated. High mortality risk.'},
+  ][Math.floor(Math.random()*4)];
+  addEvent('🚨 CRITICAL: '+ev.t,'danger');showModal(ev.t,ev.b);
+}
+const STAGES=[
+  {label:'UNMODIFIED',color:'#888',desc:'No visible modifications. Baseline human.'},
+  {label:'EARLY SIGNS',color:'#3dff8f',desc:'Subtle changes — unusual skin tone, faint vascular patterns, altered eye color.'},
+  {label:'MODERATE',color:'#f5d000',desc:'Visible deformations — bone ridges, unusual musculature, altered sensory organs.'},
+  {label:'SEVERE',color:'#ff7c22',desc:'Obvious post-human appearance. Multiple systems altered. Causes civilian panic.'},
+  {label:'EXTREME',color:'#b044ff',desc:'Barely recognizable as human. Body architecture fundamentally altered.'},
+  {label:'TRANSHUMAN',color:'#ff3a3a',desc:'Post-human organism. No longer identifiable as homo sapiens.'},
+];
+function updateStage(){const c=getList().length;G.mutationStage=c<=1?0:c<=3?1:c<=6?2:c<=9?3:c<=12?4:5;}
+// ═══════════════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════════════
+function renderAll(){renderBioStats();renderMutList();renderBodySvg();renderInstab();renderActiveMuts();renderCombos();renderVisualStage();renderHdr();}
+function renderBioStats(){
+  const s=computeStats();
+  const defs=[
+    {k:'hp',l:'VITALITY',max:600,c:'#3dff8f'},{k:'stam',l:'STAMINA',max:200,c:'#ff7c22'},
+    {k:'def',l:'DEFENSE',max:100,c:'#3a7fff'},{k:'spd',l:'SPEED',max:200,c:'#f5d000'},
+    {k:'atk',l:'ATTACK',max:200,c:'#ff3a3a'},{k:'dodge',l:'DODGE',max:90,c:'#b044ff'},
+    {k:'regen',l:'REGEN/TURN',max:60,c:'#00d4a0'},{k:'caloric',l:'CALORIC LOAD',max:500,c:'#ff8844'},
+    {k:'heatOutput',l:'HEAT OUTPUT',max:120,c:'#ff4422'},{k:'cancerRisk',l:'CANCER RISK',max:60,c:'#ff00aa'},
+    {k:'organStress',l:'ORGAN STRESS',max:200,c:'#ffaa00'},{k:'neuralStrain',l:'NEURAL STRAIN',max:150,c:'#aa44ff'},
+  ];
+  document.getElementById('bioStats').innerHTML=defs.map(d=>{
+    const v=Math.max(0,s[d.k]||0);const p=Math.min(100,(v/d.max)*100);
+    return`<div class="bstat"><div class="bstat-name">${d.l}</div><div class="bstat-track"><div class="bstat-fill" style="width:${p}%;background:${d.c}"></div></div><div class="bstat-val">${v}</div></div>`;
+  }).join('');
+}
+function renderMutList(){
+  const organ=G.selectedOrgan;
+  document.getElementById('organLabel').textContent=organ?(getOrgan(organ)||{}).name||organ:'SELECT ORGAN';
+  const list=document.getElementById('mutList');
+  const equipped=getList();
+  const filtered=MUTATIONS.filter(m=>!m.dnaOnly&&(G.filterCat==='all'||m.cat===G.filterCat));
+  list.innerHTML=filtered.map(m=>{
+    const isEq=equipped.includes(m.id);
+    const isConf=!isEq&&checkConflicts(m);
+    const reqsMet=checkReqs(m);
+    const canAfford=isEq||costMut(m)<=bmLeft();
+    const orgFull=!isEq&&(G.equippedMuts[m.organ]||[]).length>=(getOrgan(m.organ)||{slots:3}).slots;
+    const locked=!isEq&&(!reqsMet||isConf||!canAfford||orgFull);
+    const tc=tierColor(m.tier);
+    return`<div class="mut-card${isEq?' equipped':''}${isConf?' incompatible':locked?' locked':''}"
+      onmouseenter="showTip(event,'${m.id}')" onmouseleave="hideTip()">
+      <div class="mc-top">
+        <div class="mc-name" style="color:${isEq?'var(--green)':isConf?'var(--red)':'var(--text2)'}">${m.icon} ${m.name}</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+          <div class="mc-tier" style="border-color:${tc};color:${tc}">${TIERS[m.tier]}</div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--dim)">${costMut(m)} BM · ${m.organ.toUpperCase()}</div>
+        </div>
+      </div>
+      <div class="mc-cat" style="color:${catColor(m.cat)}">${m.cat.toUpperCase()}</div>
+      <div class="mc-sci">${m.sci.substring(0,110)}...</div>
+      <div class="mc-effects">
+        ${m.pros.map(p=>`<span class="eff pos">${p}</span>`).join('')}
+        ${m.cons.map(c=>`<span class="eff neg">${c}</span>`).join('')}
+      </div>
+      <div class="mc-res">
+        <span class="res-pill">INSTAB +${m.instab}</span>
+        <span class="res-pill">CANCER +${m.cancerRisk}%</span>
+        <span class="res-pill">ORGAN +${m.organStress}</span>
+        ${m.req&&m.req.length?`<span class="res-pill" style="color:var(--orange)">REQ: ${m.req.map(r=>(getMut(r)||{}).name||r).join(', ')}</span>`:''}
+      </div>
+      <div style="margin-top:8px;display:flex;justify-content:flex-end">
+        <button class="btn ${isEq?'btn-r':'btn-g'}" style="font-size:8px;padding:5px 12px"
+          onclick="equipMut('${m.id}')" ${locked?'disabled title="Cannot equip"':''}>
+          ${isEq?'REMOVE':'APPLY'}
+        </button>
+      </div>
+    </div>`;
+  }).join('')+
+  '<div style="font-family:var(--display);font-size:22px;letter-spacing:3px;color:var(--orange);margin:20px 0 10px">🧬 DNA-ONLY MUTATIONS</div>'+
+  '<div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-bottom:12px">These mutations can only be acquired by injecting animal DNA samples. They cannot be applied in the Lab.</div>'+
+  MUTATIONS.filter(m=>m.dnaOnly).map(m=>{const tc=tierColor(m.tier);
+    return`<div class="mut-card" style="cursor:default;border-color:var(--orange)">
+      <div class="mc-top"><div class="mc-name" style="color:var(--orange)">${m.icon} ${m.name} 🧬</div><div class="mc-tier" style="border-color:${tc};color:${tc}">${TIERS[m.tier]}</div></div>
+      <div class="mc-cat" style="color:var(--orange)">DNA-ONLY · ${m.cat.toUpperCase()} · ${m.organ.toUpperCase()}</div>
+      <div class="mc-sci">${m.sci}</div>
+      <div class="mc-effects">${m.pros.map(p=>`<span class="eff pos">${p}</span>`).join('')}${m.cons.map(c=>`<span class="eff neg">${c}</span>`).join('')}</div>
+      <div class="mc-res"><span class="res-pill">INSTAB +${m.instab}</span><span class="res-pill">CANCER +${m.cancerRisk}%</span>
+        ${m.req&&m.req.length?`<span class="res-pill" style="color:var(--orange)">REQ: ${m.req.map(r=>(getMut(r)||{}).name||r).join(', ')}</span>`:''}
+      </div></div>`;
+  }).join('');
+}
+function renderBodySvg(){
+  const eq=getList();const ov=document.getElementById('svgMutOverlay');ov.innerHTML='';
+  const c=eq.length;
+  const bodyColor=`rgb(${Math.min(255,15+c*10)},${Math.max(20,60-c*3)},${Math.max(10,30-c*2)})`;
+  const strokeColor=c>8?'#ff3a3a':c>4?'#ffaa00':'#2a5a3a';
+  ['svgHead','svgTorso','svgLArm','svgRArm','svgLLeg','svgRLeg'].forEach(id=>{
+    const el=document.getElementById(id);if(el){el.setAttribute('fill',bodyColor);el.setAttribute('stroke',strokeColor);}
+  });
+  if(eq.includes('chitin'))ov.innerHTML+=`<g opacity="0.7"><polygon points="70,68 90,68 80,85" fill="#666" stroke="#888" stroke-width="0.5"/><polygon points="46,80 66,80 56,95" fill="#666" stroke="#888" stroke-width="0.5"/><polygon points="94,80 114,80 104,95" fill="#666" stroke="#888" stroke-width="0.5"/></g>`;
+  if(eq.includes('bone_spurs'))ov.innerHTML+=`<g fill="#e8e8e0" opacity="0.9"><polygon points="18,76 22,58 26,76"/><polygon points="28,76 32,60 36,76"/><polygon points="117,76 121,58 125,76"/><polygon points="127,76 131,60 135,76"/><polygon points="70,68 74,50 78,68"/></g>`;
+  if(eq.includes('thermogenic'))ov.innerHTML+=Array.from({length:6},(_,i)=>`<circle cx="${50+i*12}" cy="${90+i%2*20}" r="3" fill="#ff4400" opacity="0.4"><animate attributeName="opacity" values="0;0.8;0" dur="${1+i*0.2}s" repeatCount="indefinite"/></circle>`).join('');
+  if(eq.includes('extra_limbs'))ov.innerHTML+=`<rect x="0" y="90" width="16" height="55" rx="6" fill="${bodyColor}" stroke="${strokeColor}" stroke-width="1.5"/><rect x="144" y="90" width="16" height="55" rx="6" fill="${bodyColor}" stroke="${strokeColor}" stroke-width="1.5"/>`;
+  const eyeColor=eq.includes('thermal_vision')?'#ffaa00':eq.includes('electrosense')?'#1fd8e8':eq.includes('night_vision')?'#aaaaff':'rgba(61,255,143,0.7)';
+  document.getElementById('svgEyeL').setAttribute('fill',eyeColor);
+  document.getElementById('svgEyeR').setAttribute('fill',eyeColor);
+  if(eq.some(id=>['synaptic_od','split_nervous','mirror_hyper'].includes(id))){
+    document.getElementById('svgNeuro').style.opacity='0.8';
+    ov.innerHTML+=`<ellipse cx="80" cy="38" rx="30" ry="34" fill="none" stroke="#b044ff" stroke-width="1" opacity="0.5"><animate attributeName="stroke-opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite"/></ellipse>`;
+  }else{document.getElementById('svgNeuro').style.opacity='0.3';}
+  document.getElementById('svgVeins').style.opacity=eq.includes('regen_marrow')?'0.6':'0';
+  if(G.instability>70)ov.innerHTML+=Array.from({length:3},(_,i)=>`<circle cx="${45+i*35}" cy="${80+i*30}" r="6" fill="#ff3a3a" opacity="0.12"><animate attributeName="r" values="6;10;6" dur="${0.8+i*0.3}s" repeatCount="indefinite"/></circle>`).join('');
+  ORGANS.forEach(org=>{
+    const ob=document.getElementById('ob-'+org.id);if(!ob)return;
+    const slots=G.equippedMuts[org.id]||[];
+    ob.classList.remove('has-mutation','unstable','selected');
+    if(slots.length>0)ob.classList.add('has-mutation');
+    if(G.selectedOrgan===org.id)ob.classList.add('selected');
+  });
+}
+function renderInstab(){
+  const i=G.instability;
+  const fill=document.getElementById('instabFill');
+  const color=i>75?'#ff3a3a':i>50?'#ff7c22':i>25?'#f5d000':'#3dff8f';
+  fill.style.width=i+'%';fill.style.background=`linear-gradient(90deg,${color}88,${color})`;
+  document.getElementById('instabVal').textContent=i+'%';
+  document.getElementById('instabVal').style.color=color;
+  document.getElementById('instabLabel').textContent=i>75?'CRITICAL':i>50?'DANGEROUS':i>25?'ELEVATED':'STABLE';
+  document.getElementById('instabLabel').style.color=color;
+  const s=computeStats();const r=[];
+  if(s.cancerRisk>15)r.push(`<div style="color:var(--red)">🦀 CANCER RISK: ${s.cancerRisk}%</div>`);
+  if(s.organStress>80)r.push(`<div style="color:var(--red)">⚠ ORGAN STRESS HIGH</div>`);
+  if(s.neuralStrain>60)r.push(`<div style="color:var(--red)">⚡ NEURAL STRAIN: SEIZURE RISK</div>`);
+  if(s.boneStress>20)r.push(`<div style="color:var(--red)">🦴 BONE FRACTURE RISK</div>`);
+  document.getElementById('instabRisks').innerHTML=r.join('');
+}
+function renderActiveMuts(){
+  const eq=getList();
+  document.getElementById('activeMutCount').textContent=eq.length;
+  document.getElementById('mutCountHdr').textContent=eq.length;
+  const list=document.getElementById('activeMutList');
+  if(!eq.length){list.innerHTML='<div style="font-family:var(--mono);font-size:9px;color:var(--dim);text-align:center;padding:8px">No mutations applied</div>';return;}
+  list.innerHTML=eq.map(id=>{const m=getMut(id);if(!m)return'';return`<div class="am-row"><span class="am-name" style="color:${tierColor(m.tier)}">${m.icon} ${m.name}</span><button class="am-remove" onclick="unequipMut('${id}')">✕</button></div>`;}).join('');
+}
+function renderCombos(){
+  const cd=document.getElementById('comboDisplay');
+  if(!G.combos.length){cd.innerHTML='<div style="font-family:var(--mono);font-size:8px;color:var(--dim);text-align:center;padding:8px">Combine mutations to trigger emergent effects...</div>';return;}
+  cd.innerHTML=G.combos.map(c=>`<div class="cu-card"><div class="cu-name">${c.name}</div><div style="font-family:var(--mono);font-size:8px;color:var(--dim);margin-bottom:4px">${c.rarity.toUpperCase()}</div><div class="cu-desc">${c.sci.substring(0,100)}...</div><div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px">${c.effects.map(e=>`<span class="eff ${e.t}">${e.l}</span>`).join('')}</div>${c.ability?`<div style="font-family:var(--mono);font-size:8px;color:var(--yellow);margin-top:4px">⚡ ${c.ability.name}: ${c.ability.desc}</div>`:''}</div>`).join('');
+}
+function renderVisualStage(){
+  const st=STAGES[G.mutationStage]||STAGES[0];
+  const changes=getList().map(id=>(getMut(id)||{}).visChange).filter(Boolean);
+  document.getElementById('visualStage').innerHTML=`<div style="font-family:var(--display);font-size:16px;letter-spacing:3px;color:${st.color};margin-bottom:4px">${st.label}</div><div style="font-family:var(--mono);font-size:8px;color:var(--text);margin-bottom:6px">${st.desc}</div>${changes.length?`<div style="font-family:var(--mono);font-size:8px;color:var(--dim)">• ${changes.join('<br>• ')}</div>`:''}`;
+}
+function renderHdr(){document.getElementById('resDisplay').textContent=`BIOMASS: ${bmLeft()} / ${G.biomass} | INSTABILITY: ${G.instability}%`;}
+function addEvent(msg,type='info'){
+  const log=document.getElementById('eventLog');const d=document.createElement('div');
+  d.className='ev '+type;d.textContent=msg;log.appendChild(d);log.scrollTop=log.scrollHeight;
+}
+function showTip(e,id){
+  const m=getMut(id);if(!m)return;
+  document.getElementById('tipName').textContent=m.icon+' '+m.name;
+  document.getElementById('tipSci').textContent=m.sci;
+  document.getElementById('tipStats').innerHTML=Object.entries(m.stats||{}).map(([k,v])=>`${k}: ${v>0?'+':''}${v}`).join(' | ');
+  const tip=document.getElementById('tip');tip.style.display='block';moveTip(e);
+  document.addEventListener('mousemove',moveTip);
+}
+function hideTip(){document.getElementById('tip').style.display='none';document.removeEventListener('mousemove',moveTip);}
+function moveTip(e){const tip=document.getElementById('tip');let x=e.clientX+14,y=e.clientY+14;if(x+270>window.innerWidth)x=e.clientX-280;if(y+210>window.innerHeight)y=e.clientY-220;tip.style.left=x+'px';tip.style.top=y+'px';}
+function showModal(title,body){document.getElementById('modalTitle').textContent=title;document.getElementById('modalBody').textContent=body;document.getElementById('modal').classList.add('on');}
+function pushNotif(msg,type='ok'){const s=document.getElementById('notifStack');const d=document.createElement('div');d.className='notif '+type;d.textContent=msg;s.appendChild(d);setTimeout(()=>d.remove(),3500);}
+function selectOrgan(id){
+  G.selectedOrgan=G.selectedOrgan===id?null:id;
+  renderMutList();renderBodySvg();
+  // Auto-switch to mutations pane on mobile when organ selected
+  if(window.innerWidth<=768&&id){
+    const btn=document.querySelector('.mob-pane-btn:nth-child(2)');
+    if(btn)switchLabPane('mutations',btn);
+  }
+}
+function setFilter(cat,btn){G.filterCat=cat;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderMutList();}
+function saveRoster(){
+  const name=document.getElementById('subjectName').value||'SUBJECT';
+  const genes=getList();if(!genes.length){pushNotif('No mutations to save!','warn');return;}
+  const stats=computeStats();
+  G.roster.push({id:Date.now(),name,genes,combos:[...G.combos],stats,stage:G.mutationStage,instability:G.instability});
+  pushNotif(name+' saved to roster!','ok');addEvent('"'+name+'" archived to roster','success');
+}
+// renderRoster/selectRoster/renderBattleInfo defined later
+function renderCodex(){
+  document.getElementById('codexGrid').innerHTML=MUTATIONS.filter(m=>!m.dnaOnly).map(m=>{const tc=tierColor(m.tier);
+    return`<div class="mut-card" style="cursor:default">
+      <div class="mc-top"><div class="mc-name" style="color:var(--text2)">${m.icon} ${m.name}</div><div class="mc-tier" style="border-color:${tc};color:${tc}">${TIERS[m.tier]}</div></div>
+      <div class="mc-cat" style="color:${catColor(m.cat)}">${m.cat.toUpperCase()} · ${m.organ.toUpperCase()}</div>
+      <div class="mc-sci">${m.sci}</div>
+      <div class="mc-effects">${m.pros.map(p=>`<span class="eff pos">${p}</span>`).join('')}${m.cons.map(c=>`<span class="eff neg">${c}</span>`).join('')}</div>
+      <div class="mc-res">
+        <span class="res-pill">INSTAB +${m.instab}</span><span class="res-pill">CANCER +${m.cancerRisk}%</span>
+        ${m.req&&m.req.length?`<span class="res-pill" style="color:var(--orange)">REQ: ${m.req.map(r=>(getMut(r)||{}).name||r).join(', ')}</span>`:''}
+        ${m.conflicts&&m.conflicts.length?`<span class="res-pill" style="color:var(--red)">CONFLICTS: ${m.conflicts.map(r=>(getMut(r)||{}).name||r).join(', ')}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+// ═══════════════════════════════════════════════════════
+//  BATTLE
+// ═══════════════════════════════════════════════════════
+function populateSelects(){
+  document.getElementById('enemySelect').innerHTML='<option value="">— SELECT ENEMY —</option>'+ENEMIES.map(e=>`<option value="${e.id}">[${e.faction}] ${e.name}</option>`).join('');
+  document.getElementById('envSelect').innerHTML=ENVIRONMENTS.map(e=>`<option value="${e.id}">${e.icon} ${e.name}</option>`).join('');
+}
+function calcDmg(base,def){return Math.max(1,Math.round(base*(0.8+Math.random()*0.4)*(1-(def/200))));}
+function buildAbilities(subject){
+  const abs=[{name:'BASIC STRIKE',dmg:subject.stats.atk,stam:8,desc:'Standard strike'}];
+  if(subject.genes.includes('venom_glands'))abs.push({name:'VENOM STRIKE',dmg:25,poison:15,stam:15,desc:'25 dmg + 15/turn poison'});
+  if(subject.genes.includes('acid_saliva'))abs.push({name:'ACID SPIT',dmg:35,armorPierce:25,stam:20,desc:'35 dmg + corrode -25% DEF'});
+  if(subject.genes.includes('neurotoxin_glands'))abs.push({name:'NEUROTOXIN',dmg:20,stun:true,stam:25,desc:'20 dmg + stun'});
+  if(subject.genes.includes('thermogenic'))abs.push({name:'HEAT BURST',dmg:30,burning:10,stam:20,desc:'30 dmg + 10/turn burning'});
+  if(subject.genes.includes('explosive_sweat'))abs.push({name:'DETONATE',dmg:80,selfDmg:30,stam:60,desc:'80 dmg, 30 self-damage'});
+  if(subject.genes.includes('regen_marrow'))abs.push({name:'REGEN BURST',dmg:0,heal:35,stam:30,desc:'Heal 35 HP instantly'});
+  if(subject.genes.includes('bone_spurs'))abs.push({name:'SPIKE TACKLE',dmg:40,stam:18,desc:'Bone spike charge — 40 dmg'});
+  if(subject.genes.includes('adrenal_overdrive'))abs.push({name:'ADRENAL SURGE',dmg:60,selfBerserk:true,stam:50,desc:'60 dmg, enter BERSERK'});
+  if(subject.genes.includes('cryo_adapt'))abs.push({name:'CRYOSTASIS',dmg:0,selfDef:80,stam:35,desc:'80% dmg reduction this turn'});
+  subject.combos.forEach(c=>{if(c.ability)abs.push({...c.ability,isCombo:true,comboName:c.name});});
+  return abs;
+}
+function startBattle(){
+  const eid=document.getElementById('enemySelect').value;
+  if(!eid){pushNotif('Select an enemy!','warn');return;}
+  if(G.selectedRosterIdx===null){pushNotif('Select a subject from Roster!','warn');return;}
+  const sub=G.roster[G.selectedRosterIdx];
+  const enemy=ENEMIES.find(e=>e.id===eid);
+  const env=ENVIRONMENTS.find(e=>e.id===document.getElementById('envSelect').value)||ENVIRONMENTS[0];
+  const pMod={def:0,spd:0,dodge:0};let pInstabGain=0;const envMsgs=[];let envAura=0;
+  env.effects.forEach(ef=>{
+    const applies=!ef.check||ef.check(sub);if(!applies)return;
+    if(ef.buffDef)pMod.def+=ef.buffDef;if(ef.buffDodge)pMod.dodge+=ef.buffDodge;
+    if(ef.statDrain)for(const[k,v]of Object.entries(ef.statDrain))pMod[k]=(pMod[k]||0)-v;
+    if(ef.instabGain)pInstabGain=ef.instabGain;if(ef.aura)envAura+=ef.aura;
+    envMsgs.push(ef.label);
+  });
+  const pStats={...sub.stats};for(const[k,v]of Object.entries(pMod))pStats[k]=(pStats[k]||0)+v;
+  G.battle={
+    active:true,sub,enemy,env,
+    pHP:pStats.hp,pMaxHP:pStats.hp,eHP:enemy.stats.hp,eMaxHP:enemy.stats.hp,
+    pStam:pStats.stam||100,pMaxStam:pStats.stam||100,
+    eStam:enemy.stats.stam||150,pHun:100,
+    pStats,eStats:{...enemy.stats},round:1,
+    pStatus:[],eStatus:[],pPoison:0,ePoison:0,
+    pAura:(pStats.aura||0)+Math.min(0,envAura),eAura:enemy.stats.aura||0,
+    pPhaseDodge:false,ePhaseDodge:false,pArmorStrip:0,eArmorStrip:0,
+    pInstab:sub.instability,pInstabGain,envMsgs,abilities:buildAbilities(sub),
+    pDefStance:0,eDefStance:0,eBurning:0,
+  };
+  document.getElementById('battleArea').style.display='grid';
+  document.getElementById('battleBottom').style.display='grid';
+  document.getElementById('pName').textContent=sub.name;
+  document.getElementById('eName').textContent=enemy.name;
+  document.getElementById('eMutTags').textContent='MUTATIONS: '+enemy.muts.map(m=>(getMut(m)||{}).name||m).join(' · ');
+  document.getElementById('envLabel').textContent=env.icon+' '+env.name;
+  G.BL=document.getElementById('battleLog');G.BL.innerHTML='';
+  const ep=document.getElementById('envPane');
+  ep.innerHTML=`<div style="font-family:var(--mono);font-size:9px;color:var(--cyan);letter-spacing:2px;margin-bottom:8px">ENVIRONMENT</div>
+    <div class="env-card"><div class="env-name">${env.icon} ${env.name}</div><div class="env-desc">${env.desc}</div>
+    <div style="margin-top:8px">${envMsgs.map(m=>`<div style="font-family:var(--mono);font-size:8px;color:var(--orange)">▸ ${m}</div>`).join('')}</div></div>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--cyan);letter-spacing:2px;margin:12px 0 6px">ACTIVE COMBOS</div>
+    ${sub.combos.map(c=>`<div class="env-card" style="border-color:var(--yellow);margin-bottom:6px"><div class="env-name" style="color:var(--yellow)">${c.name}</div><div class="env-desc">${c.ability?c.ability.desc:''}</div></div>`).join('')}`;
+  renderPAbilities();
+  blog(`// BATTLE: ${sub.name} VS ${enemy.name} | ${env.name} //`,'sys');
+  envMsgs.forEach(m=>blog('ENV: '+m,'sys'));
+  updateBattleUI();
+}
+function renderPAbilities(){
+  const b=G.battle;
+  document.getElementById('pAbilities').innerHTML=b.abilities.map((a,i)=>
+    `<button class="ab-btn${a.isCombo?' combo':''}" onclick="playerAct(${i})">
+      <span>${a.isCombo?'⚡ ':''}"${a.name}"${a.isCombo?` (${a.comboName})`:''}</span>
+      <span class="ab-cost">${a.dmg?a.dmg+'dmg':''}${a.heal?'+'+a.heal+'hp':''}${(a.selfDef&&!a.dmg&&!a.heal)?a.selfDef+'%def':''} [${a.stam||0}STA]</span>
+    </button>`).join('');
+}
+function playerAct(idx){
+  const b=G.battle;if(!b||!b.active)return;
+  if(b.pStatus.includes('stunned')){blog(b.sub.name+' is STUNNED!','p');b.pStatus=b.pStatus.filter(s=>s!=='stunned');afterPlayer();return;}
+  const ab=b.abilities[idx];
+  if((ab.stam||0)>b.pStam){pushNotif('Insufficient STAMINA!','warn');return;}
+  b.pStam-=(ab.stam||0);b.pHun=Math.max(0,b.pHun-(ab.stam||0)*0.3);
+  b.pPhaseDodge=false;b.pDefStance=0;
+  if(ab.phaseDodge){b.pPhaseDodge=true;blog(b.sub.name+' enters PHASE PREDICT — next attack DODGED + COUNTERED!','p');}
+  else if(ab.selfDef&&!ab.dmg&&!ab.heal){b.pDefStance=ab.selfDef;blog(b.sub.name+' uses '+ab.name+' — DEFENSE '+ab.selfDef+'%','p');}
+  else if(ab.heal){const h=Math.min(ab.heal,b.pMaxHP-b.pHP);b.pHP+=h;blog(b.sub.name+' '+ab.name+' — HEALED '+h+' HP!','p');}
+  else{
+    const eDodge=b.ePhaseDodge?100:(b.eStats.dodge||0);
+    b.ePhaseDodge=false;
+    if(Math.random()*100<eDodge){blog(b.enemy.name+' DODGES '+ab.name+'!','e');}
+    else{
+      const isCrit=Math.random()<0.12;
+      let def=Math.max(0,(b.eStats.def||10)-(b.eArmorStrip||0));
+      let dmg=calcDmg(ab.dmg*(ab.multiHit?1:1)*(isCrit?1.85:1),def);
+      if(ab.bypass)dmg=Math.round(dmg*1.5);
+      if(ab.multiHit){let tot=0;for(let h=0;h<ab.multiHit;h++)tot+=calcDmg(ab.dmg*(isCrit?1.85:1),def);dmg=tot;b.eHP-=tot;blog(b.sub.name+' '+ab.name+' — MULTI HIT '+tot+' total dmg!',isCrit?'crit':'p');}
+      else{b.eHP-=dmg;blog(isCrit?'CRITICAL HIT! '+b.sub.name+' '+ab.name+': '+dmg+' dmg!':b.sub.name+' '+ab.name+' — '+dmg+' dmg.',isCrit?'crit':'p');}
+      if(ab.armorPierce){b.eArmorStrip+=ab.armorPierce;blog('Armor corroded! Enemy DEF -'+ab.armorPierce,'combo');}
+      if(ab.poison){b.ePoison=(b.ePoison||0)+ab.poison;blog(b.enemy.name+' POISONED: +'+ab.poison+'/turn','combo');}
+      if(ab.burning){b.eBurning=(b.eBurning||0)+ab.burning;blog(b.enemy.name+' BURNING: +'+ab.burning+'/turn','combo');}
+      if(ab.stun&&Math.random()<0.6){b.eStatus.push('stunned');blog(b.enemy.name+' STUNNED!','combo');}
+      if(ab.selfDmg){b.pHP-=ab.selfDmg;blog(b.sub.name+' self-damage: '+ab.selfDmg,'p');}
+      if(ab.selfBerserk){b.pStatus.push('berserk');blog(b.sub.name+' enters BERSERK STATE!','combo');}
+    }
+  }
+  if(b.pStats.regen){const r=Math.min(b.pStats.regen,b.pMaxHP-b.pHP);b.pHP+=r;if(r>0)blog(b.sub.name+' REGEN +'+r+' HP','p');}
+  if(b.pInstabGain){b.pInstab=Math.min(100,b.pInstab+b.pInstabGain);}
+  if(b.pInstab>80&&Math.random()<0.15){blog('⚠ INSTABILITY: MUTATION REJECTION — '+b.sub.name+' takes 20 dmg!','fail');b.pHP-=20;}
+  if(b.eHP<=0){endBattle(true);return;}
+  if(b.pHP<=0){endBattle(false);return;}
+  afterPlayer();
+}
+function afterPlayer(){setTimeout(()=>enemyTurn(),650);}
+function enemyTurn(){
+  const b=G.battle;if(!b||!b.active)return;
+  if(b.pPoison>0){b.pHP-=b.pPoison;blog(b.sub.name+' POISON -'+b.pPoison+' HP','e');}
+  if(b.ePoison>0){b.eHP-=b.ePoison;blog(b.enemy.name+' POISON -'+b.ePoison+' HP','p');}
+  if(b.eBurning>0){b.eHP-=b.eBurning;blog(b.enemy.name+' BURNING -'+b.eBurning+' HP','p');}
+  if(b.eAura>0){b.pHP-=b.eAura;blog(b.enemy.name+' AURA -'+b.eAura+' to '+b.sub.name,'e');}
+  if(b.pAura<0){b.pHP+=b.pAura;blog('ENV effect: '+b.pAura+' HP from environment','fail');}
+  if(b.eHP<=0){endBattle(true);return;}if(b.pHP<=0){endBattle(false);return;}
+  if(b.eStatus.includes('stunned')){blog(b.enemy.name+' is STUNNED!','e');b.eStatus=b.eStatus.filter(s=>s!=='stunned');}
+  else{
+    const ab=b.enemy.abilities[Math.floor(Math.random()*b.enemy.abilities.length)];
+    if(ab.selfDef||ab.heal){
+      blog(b.enemy.name+' uses '+ab.name+' — defensive!','e');b.eDefStance=ab.selfDef||0;
+      if(ab.heal){const h=Math.min(ab.heal,b.eMaxHP-b.eHP);b.eHP+=h;blog(b.enemy.name+' REGEN +'+h+' HP','e');}
+    }else{
+      const pDodge=b.pPhaseDodge?100:Math.min(90,(b.pStats.dodge||0)+(b.pHun<20?-15:0));
+      if(Math.random()*100<pDodge){
+        blog(b.sub.name+' DODGES '+b.enemy.name+' '+ab.name+'!','p');
+        if(b.pPhaseDodge){const c=calcDmg(b.pStats.atk,b.eStats.def-(b.eArmorStrip||0));b.eHP-=c;blog('COUNTER-ATTACK: '+b.sub.name+' retaliates '+c+' dmg!','crit');}
+        b.pPhaseDodge=false;
+      }else{
+        b.pPhaseDodge=false;
+        const defMult=b.pDefStance?1-b.pDefStance/100:1;b.pDefStance=0;
+        const isCrit=Math.random()<0.09;
+        let def=Math.max(0,(b.pStats.def||10)-(b.pArmorStrip||0));def=Math.max(0,def*defMult);
+        if(ab.multiHit){let tot=0;for(let h=0;h<ab.multiHit;h++)tot+=calcDmg(ab.dmg*(isCrit?1.8:1),def);b.pHP-=tot;blog(b.enemy.name+' '+ab.name+' MULTI HIT '+tot+' total!',isCrit?'crit':'e');}
+        else{let dmg=calcDmg(ab.dmg*(isCrit?1.8:1),def);if(ab.bypass)dmg=Math.round(dmg*1.4);b.pHP-=dmg;blog(isCrit?'CRITICAL! '+b.enemy.name+' '+ab.name+': '+dmg+'!':b.enemy.name+' '+ab.name+' — '+dmg+' dmg.',isCrit?'crit':'e');}
+        if(ab.stealHp){const s=Math.min(ab.stealHp,b.eMaxHP-b.eHP);b.eHP+=s;blog(b.enemy.name+' DRAINS '+s+' HP!','e');}
+        if(ab.poison){b.pPoison=(b.pPoison||0)+ab.poison;blog(b.sub.name+' POISONED!','e');}
+        if(ab.stun&&Math.random()<0.5){b.pStatus.push('stunned');blog(b.sub.name+' STUNNED!','e');}
+      }
+    }
+  }
+  if(b.eStats.regen){const r=Math.min(b.eStats.regen,b.eMaxHP-b.eHP);b.eHP+=r;}
+  b.round++;document.getElementById('roundTxt').textContent='ROUND '+b.round;
+  if(b.pHP<=0){endBattle(false);return;}if(b.eHP<=0){endBattle(true);return;}
+  updateBattleUI();
+}
+function endBattle(win){
+  const b=G.battle;b.active=false;b.pHP=Math.max(0,b.pHP);b.eHP=Math.max(0,b.eHP);updateBattleUI();
+  document.querySelectorAll('#pAbilities button').forEach(bt=>bt.disabled=true);
+  if(win){blog('// VICTORY — '+b.sub.name+' DEFEATS '+b.enemy.name+' //','combo');pushNotif('VICTORY! +6 BIOMASS awarded','ok');G.biomass+=6;renderHdr();}
+  else{blog('// DEFEAT — '+b.sub.name+' HAS FALLEN //','e');pushNotif('DEFEAT. Subject lost.','bad');}
+}
+function resetBattle(){if(G.battle)G.battle.active=false;G.battle=null;document.getElementById('battleArea').style.display='none';document.getElementById('battleBottom').style.display='none';document.getElementById('battleLog').innerHTML='<div class="blog-entry sys">// COMBAT SYSTEMS ONLINE //</div>';}
+function updateBattleUI(){
+  const b=G.battle;if(!b)return;
+  const pp=Math.max(0,b.pHP/b.pMaxHP*100),ep=Math.max(0,b.eHP/b.eMaxHP*100);
+  const sp=Math.max(0,b.pStam/b.pMaxStam*100);
+  document.getElementById('pHpBar').style.width=pp+'%';document.getElementById('eHpBar').style.width=ep+'%';
+  document.getElementById('pStamBar').style.width=sp+'%';
+  document.getElementById('pHunBar').style.width=b.pHun+'%';
+  document.getElementById('pHpTxt').textContent=Math.max(0,Math.round(b.pHP))+'/'+b.pMaxHP;
+  document.getElementById('eHpTxt').textContent=Math.max(0,Math.round(b.eHP))+'/'+b.eMaxHP;
+  document.getElementById('pStamTxt').textContent=Math.max(0,Math.round(b.pStam));
+  document.getElementById('eStamTxt').textContent=Math.max(0,Math.round(b.eStam));
+  document.getElementById('pHunTxt').textContent=Math.round(b.pHun)+'%';
+  document.getElementById('pStatus').innerHTML=[
+    b.pPoison>0?`<span class="stag poison">☠ POISON ${b.pPoison}/t</span>`:'',
+    b.pStatus.includes('stunned')?'<span class="stag stun">⚡ STUNNED</span>':'',
+    b.pStatus.includes('berserk')?'<span class="stag berserk">🔴 BERSERK</span>':'',
+    b.pPhaseDodge?'<span class="stag phase">◈ PHASE DODGE</span>':'',
+    b.pHun<20?'<span class="stag hunger">⚠ STARVING</span>':'',
+    b.pInstab>70?`<span class="stag instab">☢ UNSTABLE ${Math.round(b.pInstab)}%</span>`:'',
+  ].join('');
+  document.getElementById('eStatus').innerHTML=[
+    b.ePoison>0?`<span class="stag poison">☠ POISON ${b.ePoison}/t</span>`:'',
+    b.eStatus.includes('stunned')?'<span class="stag stun">⚡ STUNNED</span>':'',
+    b.eBurning>0?`<span class="stag burning">🔥 BURN ${b.eBurning}/t</span>`:'',
+    b.eArmorStrip>0?`<span class="stag instab">ARMOR -${b.eArmorStrip}</span>`:'',
+  ].join('');
+}
+function blog(msg,type='sys'){if(!G.BL)return;const d=document.createElement('div');d.className='blog-entry '+type;d.textContent=`[R${G.battle?G.battle.round:1}] ${msg}`;G.BL.appendChild(d);G.BL.scrollTop=G.BL.scrollHeight;}
+function switchTab(tab,btn){
+  document.getElementById('tab-lab').style.display='none';
+  ['battle','roster','codex','contracts','market'].forEach(t=>{
+    const el=document.getElementById('tab-'+t);if(el)el.classList.remove('on');
+  });
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
+  if(tab==='lab'){
+    document.getElementById('tab-lab').style.display='flex';
+    const anyActive=document.querySelector('.pane.mob-active');
+    if(!anyActive){const first=document.getElementById('lab-pane-body');if(first)first.classList.add('mob-active');}
+  } else {
+    document.getElementById('tab-'+tab).classList.add('on');
+  }
+  btn.classList.add('on');
+  if(tab==='roster')renderRoster();
+  if(tab==='codex')renderCodex();
+  if(tab==='battle')renderBattleInfo();
+  if(tab==='contracts')renderContracts();
+  if(tab==='market')renderMarket();
+}
+// ═══════════════════════════════════════════════════════
+//  SUBJECT MANAGEMENT SYSTEM
+// ═══════════════════════════════════════════════════════
+const SUBJECT_NAMES=['ECHO','KRAIT','OBSIDIAN','CIPHER','TALON','VOSS','MIRA','DRAX','NYX','VIPER','STRIX','IRON','SABLE','CREST','ROOK','PHANTOM','DUSK','HELIX','NOVA','VALE'];
+const NEG_ALTERATIONS=[
+  {id:'tremors',name:'NEURAL TREMORS',desc:'Fine motor control degraded. Hands shake uncontrollably.',statMod:{atk:-12,dodge:-8},social:'Unsettling to observe'},
+  {id:'aggro_leak',name:'UNCONTROLLED AGGRESSION',desc:'Limbic inhibition failed. Subject lashes out without provocation.',statMod:{atk:8,int:-15},social:'Cannot attend public contracts'},
+  {id:'skin_rot',name:'DERMAL NECROSIS',desc:'Engineered skin tissue decaying. Open lesions spreading.',statMod:{def:-15,hp:-20},social:'Extreme social visibility'},
+  {id:'bone_pain',name:'OSSEOUS PAIN SYNDROME',desc:'Bone remodeling too rapid. Constant skeletal agony.',statMod:{spd:-20,stam:-30},social:'Impairs all physical contracts'},
+  {id:'psychosis',name:'PARANOID PSYCHOSIS',desc:'Dopamine system corrupted. Subject perceives enemies everywhere.',statMod:{int:-20,dodge:5},social:'Disqualified from diplomatic/research contracts'},
+  {id:'metabolic_crash',name:'METABOLIC COLLAPSE',desc:'Mitochondrial efficiency near zero. Constant exhaustion.',statMod:{stam:-40,spd:-15},social:'Cannot maintain extended operations'},
+  {id:'smell',name:'CHEMICAL OUTGASSING',desc:'Modified glands emit noxious compounds continuously.',statMod:{atk:5},social:'Immediately detected in covert operations'},
+  {id:'photosensitive',name:'SEVERE PHOTOSENSITIVITY',desc:'Modified retinas cannot handle normal light. Subject in constant pain outdoors.',statMod:{dodge:-10,spd:-10},social:'Daytime surface ops impossible'},
+  {id:'vocaloss',name:'VOCAL APPARATUS DAMAGE',desc:'Larynx mutated past speech capability. Communication via text only.',statMod:{},social:'-30% on all diplomatic contracts'},
+  {id:'muscle_spasm',name:'TETANIC SPASMS',desc:'Dense muscle fibers firing at random. Periodic full-body seizures.',statMod:{str:10,atk:-10},social:'Combat contracts only'},
+];
+function rndName(){return SUBJECT_NAMES[Math.floor(Math.random()*SUBJECT_NAMES.length)]+'-'+String(Math.floor(Math.random()*99)+1).padStart(2,'0');}
+function makeBlankSubject(name){
+  return {
+    id:Date.now()+Math.random(),
+    name:name||rndName(),
+    genes:[],combos:[],stats:{hp:100,atk:20,def:10,spd:60,str:15,dodge:15,int:10,stam:100,regen:0,caloric:0},
+    stage:0,instability:0,
+    status:'available', // available | contract | training | dead
+    negAlts:[],         // negative alterations from black market
+    trainLog:[],        // training history
+    contractHistory:[],
+    trainingTurns:0,    // turns remaining in training
+    contractTurns:0,
+  };
+}
+function addStartingSubjects(){
+  if(G.subjects&&G.subjects.length)return;
+  G.subjects=[];
+  for(let i=0;i<3;i++){
+    const s=makeBlankSubject(['ALPHA-01','BETA-02','GAMMA-03'][i]);
+    G.subjects.push(s);
+  }
+  G.activeSubjectIdx=0;
+}
+// ═══════════════════════════════════════════════════════
+//  TRAINING PROGRAMS
+// ═══════════════════════════════════════════════════════
+const TRAINING_PROGRAMS=[
+  {id:'combat_drill',name:'COMBAT DRILL',icon:'⚔',desc:'Intensive combat training. Increases ATK and DODGE.',cost:5,turns:1,
+   apply:s=>{
+    const gain={atk:Math.round(5+Math.random()*8),dodge:Math.round(3+Math.random()*5)};
+    const hasNeural=s.genes.includes('neural_clock')||s.genes.includes('memory_engram');
+    if(hasNeural){gain.atk=Math.round(gain.atk*1.5);gain.dodge=Math.round(gain.dodge*1.5);}
+    s.stats.atk+=gain.atk;s.stats.dodge+=gain.dodge;
+    return{result:'success',log:`+${gain.atk} ATK, +${gain.dodge} DODGE${hasNeural?' (neural boost)':''}`};
+   }},
+  {id:'endurance',name:'ENDURANCE RUN',icon:'🏃',desc:'Cardiovascular conditioning. Increases SPEED and STAMINA.',cost:5,turns:1,
+   apply:s=>{
+    const spd=Math.round(4+Math.random()*6),sta=Math.round(5+Math.random()*10);
+    s.stats.spd+=spd;s.stats.stam+=sta;
+    return{result:'success',log:`+${spd} SPD, +${sta} STAM`};
+   }},
+  {id:'academic',name:'ACADEMIC STUDY',icon:'📚',desc:'Scientific and tactical education. Increases INT. Better with memory mutations.',cost:4,turns:1,
+   apply:s=>{
+    const base=Math.round(5+Math.random()*8);
+    const memBonus=s.genes.includes('memory_engram')?2:1;
+    const neuBonus=s.genes.includes('neural_clock')?1.5:1;
+    const psychMalus=s.negAlts.includes('psychosis')?0.4:1;
+    const gain=Math.round(base*memBonus*neuBonus*psychMalus);
+    s.stats.int+=gain;
+    const flag=psychMalus<1?' (psychosis impairs retention)':memBonus>1?' (memory mutations amplified)':'';
+    return{result:'success',log:`+${gain} INT${flag}`};
+   }},
+  {id:'weapons',name:'WEAPONS TRAINING',icon:'🔫',desc:'Specialist weapons handling. Increases ATK significantly.',cost:8,turns:1,
+   apply:s=>{
+    const tremor=s.negAlts.includes('tremors');
+    if(tremor){s.stats.atk+=Math.round(2+Math.random()*3);return{result:'partial',log:'+3 ATK only (neural tremors prevent proper handling)'};}
+    const gain=Math.round(8+Math.random()*12);s.stats.atk+=gain;
+    return{result:'success',log:`+${gain} ATK`};
+   }},
+  {id:'stealth',name:'STEALTH OPS',icon:'👤',desc:'Infiltration and concealment training. Increases DODGE and reduces social visibility.',cost:6,turns:1,
+   apply:s=>{
+    const smelly=s.negAlts.includes('smell');
+    if(smelly){return{result:'failure',log:'FAILED — Chemical outgassing makes stealth impossible'};}
+    const gain=Math.round(5+Math.random()*8);s.stats.dodge+=gain;
+    return{result:'success',log:`+${gain} DODGE`};
+   }},
+  {id:'medical',name:'MEDICAL CONDITIONING',icon:'💊',desc:'Mutation stabilization therapy. Reduces instability. Requires high INT.',cost:10,turns:1,
+   apply:s=>{
+    if(s.stats.int<20){return{result:'failure',log:'FAILED — INT too low to comprehend protocols'};}
+    const reduction=Math.round(5+Math.random()*10+s.stats.int*0.1);
+    s.instability=Math.max(0,s.instability-reduction);
+    return{result:'success',log:`-${reduction}% Instability`};
+   }},
+  {id:'strength',name:'HEAVY RESISTANCE',icon:'🏋',desc:'Maximal strength training. Best results with Dense Muscle or Reinforced Skeleton.',cost:5,turns:1,
+   apply:s=>{
+    const bonus=(s.genes.includes('dense_muscle')?2:1)*(s.genes.includes('reinf_skeleton')?1.4:1);
+    const gain=Math.round((4+Math.random()*6)*bonus);s.stats.str+=gain;s.stats.atk+=Math.round(gain*0.3);
+    return{result:'success',log:`+${gain} STR, +${Math.round(gain*0.3)} ATK${bonus>1?' (mutation amplified)':''}`};
+   }},
+  {id:'psych',name:'PSYCHOLOGICAL HARDENING',icon:'🧠',desc:'Resistance to fear, pain and manipulation. Reduces instability risk.',cost:7,turns:1,
+   apply:s=>{
+    const dampened=s.genes.includes('emot_damp');
+    const gain=dampened?2:1;
+    s.stats.hp+=Math.round(5*gain);s.instability=Math.max(0,s.instability-Math.round(3*gain));
+    return{result:'success',log:`+${Math.round(5*gain)} HP, -${Math.round(3*gain)}% Instability${dampened?' (emotional dampening synergy)':''}`};
+   }},
+];
+// ═══════════════════════════════════════════════════════
+//  CONTRACT SYSTEM
+// ═══════════════════════════════════════════════════════
+const CONTRACT_TEMPLATES=[
+  // MILITARY
+  {id:'mil_assault',cat:'MILITARY',icon:'⚔',name:'STRIKE TEAM OPERATION',
+   flavor:'"Asset required for high-value target extraction. Rules of engagement: unrestricted."',
+   desc:'Deploy your subject on a direct combat mission. High risk, high reward.',
+   prefer:{atk:true,def:true,spd:true},rewardBio:12,rewardXP:15,risk:'HIGH',
+   socialReq:'none',
+   blockers:['aggro_leak'],
+   evaluate:(s)=>{
+    let score=(s.stats.atk/20)+(s.stats.def/10)+(s.stats.spd/60);
+    if(s.genes.includes('predator_instinct'))score+=1.5;
+    if(s.genes.includes('dense_muscle'))score+=1;
+    if(s.genes.includes('hyper_reflex'))score+=1;
+    if(s.negAlts.includes('bone_pain'))score-=1.5;
+    return score;
+   },
+   narrateResult:(s,score,roll)=>{
+    if(score>=3.5)return`${s.name}'s combat capability exceeded mission parameters. Target eliminated, zero friendly casualties. 3 secondary targets neutralized as collateral. Client extremely satisfied.`;
+    if(score>=2.5)return`${s.name} completed the primary objective with minor complications. A firefight extended the operation by 4 hours but target was extracted. Moderate client satisfaction.`;
+    if(score>=1.5)return`Operation partially successful. ${s.name} eliminated the target but sustained significant damage during extraction. Medical intervention required on return.`;
+    return`Mission failed. ${s.name} was compromised at the insertion point and forced to abort. Client demands partial refund.`;
+   },rewardMult:(score)=>score>=3.5?1.5:score>=2.5?1:score>=1.5?0.5:0},
+  {id:'mil_intel',cat:'MILITARY',icon:'🔍',name:'BATTLEFIELD RECONNAISSANCE',
+   flavor:'"Scout positions ahead of the main force. Do not engage unless discovered."',
+   desc:'High-stealth intelligence gathering behind enemy lines. Rewards SPD and DODGE.',
+   prefer:{spd:true,dodge:true,int:true},rewardBio:9,rewardXP:10,risk:'MED',
+   socialReq:'none',
+   blockers:['smell','photosensitive'],
+   evaluate:(s)=>{
+    let score=(s.stats.dodge/15)+(s.stats.spd/60)+(s.stats.int/10);
+    if(s.genes.includes('chem_track'))score+=1.5;
+    if(s.genes.includes('vibro_sense'))score+=1.2;
+    if(s.genes.includes('hyper_hearing'))score+=1;
+    if(s.negAlts.includes('tremors'))score-=0.5;
+    return score;
+   },
+   narrateResult:(s,score)=>{
+    if(score>=3.5)return`${s.name}'s sensory mutations provided coverage no drone could match. Full enemy order of battle mapped. Intercepted coded transmissions. Zero detection.`;
+    if(score>=2.5)return`Successful recon. ${s.name} scouted 80% of target area before a patrol came close. Exfil required early but core objective complete.`;
+    if(score>=1.5)return`Partial intelligence gathered. ${s.name} was spotted by a motion sensor and had to destroy evidence before extracting. Usable data recovered.`;
+    return`${s.name} was detected and pursued. Intel compromised. Subject escaped but mission data lost.`;
+   },rewardMult:(score)=>score>=3.5?1.5:score>=2.5?1:score>=1.5?0.5:0},
+  {id:'mil_guard',cat:'MILITARY',icon:'🛡',name:'FORWARD BASE DEFENSE',
+   flavor:'"Hold the perimeter at all costs. Reinforcements in 72 hours."',
+   desc:'Static defensive operation. Endurance and toughness are paramount.',
+   prefer:{hp:true,def:true,stam:true},rewardBio:8,rewardXP:8,risk:'MED',
+   socialReq:'none',
+   blockers:[],
+   evaluate:(s)=>{
+    let score=(s.stats.hp/100)+(s.stats.def/10)+(s.stats.stam/100);
+    if(s.genes.includes('regen_marrow'))score+=1.5;
+    if(s.genes.includes('dermal_ceramic'))score+=1.2;
+    if(s.genes.includes('fat_armor'))score+=1;
+    if(s.negAlts.includes('metabolic_crash'))score-=1.5;
+    return score;
+   },
+   narrateResult:(s,score)=>{
+    if(score>=3.5)return`${s.name} held the line solo for 71 hours. Fourteen assault attempts repelled. Base intact. Client has requested permanent contract.`;
+    if(score>=2.5)return`Base defended with damage. ${s.name} sustained wounds in the final push but held until reinforcements arrived.`;
+    if(score>=1.5)return`Partial success. ${s.name} held the main gate but the eastern perimeter was breached. Partial objective credit awarded.`;
+    return`${s.name} was overwhelmed on hour 18. Base partially destroyed. No payment issued.`;
+   },rewardMult:(score)=>score>=3.5?1.4:score>=2.5?1:score>=1.5?0.4:0},
+  // SCIENTIFIC
+  {id:'sci_trial',cat:'SCIENTIFIC',icon:'🔬',name:'CLINICAL TRIAL — PHASE III',
+   flavor:'"Subject will undergo controlled exposure to experimental compounds. Informed consent waived under NDA."',
+   desc:'Subject used as a test specimen. High INT improves interaction with researchers and data quality.',
+   prefer:{int:true,hp:true},rewardBio:10,rewardXP:12,risk:'MED',
+   socialReq:'COVERT',
+   blockers:['psychosis','aggro_leak'],
+   evaluate:(s)=>{
+    let score=(s.stats.int/10)+(s.stats.hp/100);
+    if(s.genes.includes('memory_engram'))score+=1.5;
+    if(s.genes.includes('neural_clock'))score+=1;
+    if(s.genes.includes('adaptive_immune'))score+=1;
+    if(s.negAlts.includes('vocaloss'))score-=1;
+    return score;
+   },
+   narrateResult:(s,score)=>{
+    if(score>=3.5)return`${s.name}'s superior cognition allowed precise self-reporting of internal states. Researchers described the data as "40 years of biology compressed into 90 days." Paper forthcoming in Nature.`;
+    if(score>=2.5)return`Trial completed. ${s.name} tolerated most compounds without issue. A minor reaction to batch #7 was documented and resolved.`;
+    if(score>=1.5)return`Moderate data gathered. ${s.name} had difficulty with some protocol compliance, limiting certain data streams. Partial payment issued.`;
+    return`Trial suspended. ${s.name}'s responses were too erratic to produce reliable data. Compensation voided.`;
+   },
+   sideEffect:(s,score)=>{if(score<1.5){s.instability=Math.min(100,s.instability+8);return'⚠ Instability +8 from compound exposure';}return null;},
+   rewardMult:(score)=>score>=3.5?1.6:score>=2.5?1:score>=1.5?0.5:0},
+  {id:'sci_field',cat:'SCIENTIFIC',icon:'🧬',name:'FIELD BIOLOGICAL SURVEY',
+   flavor:'"Collect flora/fauna samples from restricted biomes. Hazmat rated environment."',
+   desc:'Collect biological samples in dangerous terrain. Chemical resistance and toughness valued.',
+   prefer:{def:true,int:true,spd:true},rewardBio:8,rewardXP:9,risk:'MED',
+   socialReq:'none',
+   blockers:[],
+   evaluate:(s)=>{
+    let score=(s.stats.def/10)+(s.stats.int/10)+(s.stats.spd/60)*0.5;
+    if(s.genes.includes('chem_track'))score+=1.5;
+    if(s.genes.includes('acid_tissue'))score+=1;
+    if(s.genes.includes('adaptive_immune'))score+=1.2;
+    return score;
+   },
+   narrateResult:(s,score)=>{
+    if(score>=3.5)return`${s.name} catalogued 847 novel species across a 12km grid. Chemical detection mutations identified 3 previously unknown toxic compounds. Paper submitted to three journals simultaneously.`;
+    if(score>=2.5)return`Good field work. ${s.name} collected all primary samples and survived a minor contamination event without incident.`;
+    if(score>=1.5)return`Partial survey completed. Hazardous exposure slowed collection but core samples secured.`;
+    return`Environmental contamination forced early extraction. Samples compromised. Rescheduling required.`;
+   },rewardMult:(score)=>score>=3.5?1.4:score>=2.5?1:score>=1.5?0.5:0},
+  {id:'sci_autopsy',cat:'SCIENTIFIC',icon:'🩻',name:'FORENSIC BIOLOGICAL ANALYSIS',
+   flavor:'"Assist lab staff with analysis of recovered specimens. Some specimens are... still active."',
+   desc:'Pure intelligence and observation work. Near-useless without high INT. No physical risk.',
+   prefer:{int:true},rewardBio:7,rewardXP:14,risk:'LOW',
+   socialReq:'COVERT',
+   blockers:['psychosis','vocaloss'],
+   evaluate:(s)=>{
+    let score=(s.stats.int/10)*1.5;
+    if(s.genes.includes('memory_engram'))score*=1.4;
+    if(s.genes.includes('neural_clock'))score*=1.3;
+    if(s.negAlts.includes('aggro_leak'))score*=0.3;
+    return score;
+   },
+   narrateResult:(s,score)=>{
+    if(score>=3.5)return`${s.name} identified a cryptic mutation sequence the entire lab had missed for two weeks. Lab director offered a standing research position.`;
+    if(score>=2.5)return`Solid analytical contribution. ${s.name}'s pattern recognition flagged several anomalies that proved significant.`;
+    if(score>=1.5)return`Useful but unremarkable assistance. Report submitted, client satisfied.`;
+    return`${s.name}'s analysis was too unreliable to use. Client chose not to pay.`;
+   },rewardMult:(score)=>score>=3.5?1.5:score>=2.5?1:score>=1.5?0.6:0},
+  // SECURITY
+  {id:'sec_corp',cat:'SECURITY',icon:'🏢',name:'CORPORATE PROTECTION DETAIL',
+   flavor:'"High-profile executive requires 24/7 biological asset protection. Discretion mandatory."',
+   desc:'Protect a VIP. Presence must be intimidating but not disturbing. Social and combat balance required.',
+   prefer:{atk:true,def:true,int:true},rewardBio:10,rewardXP:10,risk:'MED',
+   socialReq:'TOLERABLE',
+   blockers:['skin_rot','aggro_leak','bone_pain'],
+   evaluate:(s)=>{
+    let score=(s.stats.atk/20)+(s.stats.def/10)+(s.stats.int/10)*0.5;
+    const visScore=s.negAlts.length===0?1.5:s.negAlts.length===1?1:0.5;
+    score*=visScore;
+    if(s.genes.includes('neuro_weapon'))score+=1.5;
+    if(s.genes.includes('emot_damp'))score+=0.8;
+    if(s.genes.includes('predator_instinct')&&!s.negAlts.includes('aggro_leak'))score+=0.5;
+    return score;
+   },
+   narrateResult:(s,score)=>{
+    if(score>=3.5)return`${s.name}'s presence alone deterred two assassination attempts. The executive reported feeling "genuinely untouchable." Long-term retainer offered.`;
+    if(score>=2.5)return`Competent protection. One incident handled swiftly and quietly. Client satisfied.`;
+    if(score>=1.5)return`An incident occurred but the VIP survived. ${s.name}'s appearance disturbed the client's guests more than anticipated. Partial payment.`;
+    return`${s.name}'s behavior or appearance caused a PR incident. Contract terminated. No payment.`;
+   },rewardMult:(score)=>score>=3.5?1.5:score>=2.5?1:score>=1.5?0.4:0},
+  {id:'sec_border',cat:'SECURITY',icon:'🚧',name:'BORDER INTERDICTION PATROL',
+   flavor:'"Monitor 40km of unlit frontier. No questions about what crosses."',
+   desc:'Patrol and intercept in harsh outdoor conditions. Sensing mutations extremely valuable here.',
+   prefer:{spd:true,dodge:true,int:true},rewardBio:8,rewardXP:8,risk:'LOW',
+   socialReq:'none',
+   blockers:['photosensitive'],
+   evaluate:(s)=>{
+    let score=(s.stats.spd/60)+(s.stats.dodge/15);
+    if(s.genes.includes('night_vision'))score+=1.5;
+    if(s.genes.includes('vibro_sense'))score+=1.5;
+    if(s.genes.includes('chem_track'))score+=1.2;
+    if(s.genes.includes('hyper_hearing'))score+=1;
+    if(s.genes.includes('thermal_vision'))score+=1.2;
+    return score;
+   },
+   narrateResult:(s,score)=>{
+    if(score>=3.5)return`${s.name} detected 23 crossing attempts including 3 that bypassed all electronic sensors. Client described the performance as "inhuman" — accurate description.`;
+    if(score>=2.5)return`Effective patrol. Several interceptions made, no significant breaches during watch.`;
+    if(score>=1.5)return`Adequate coverage. One breach missed due to terrain obstruction but overall satisfactory.`;
+    return`Multiple breaches on watch. Client unsatisfied.`;
+   },rewardMult:(score)=>score>=3.5?1.4:score>=2.5?1:score>=1.5?0.6:0},
+  {id:'sec_event',cat:'SECURITY',icon:'🎖',name:'VENUE SECURITY — HIGH RISK EVENT',
+   flavor:'"Credentialed guests only. Any unknown biological signatures are threats."',
+   desc:'Crowd control at a high-value event. Social tolerance absolutely required.',
+   prefer:{int:true,atk:true,def:true},rewardBio:7,rewardXP:7,risk:'LOW',
+   socialReq:'TOLERABLE',
+   blockers:['skin_rot','bone_pain','smell','aggro_leak'],
+   evaluate:(s)=>{
+    let score=(s.stats.int/10)+(s.stats.atk/20)*0.5;
+    const negPenalty=s.negAlts.length*0.8;
+    score=Math.max(0,score-negPenalty);
+    if(s.genes.includes('hyper_hearing'))score+=1;
+    if(s.genes.includes('chem_track'))score+=0.8;
+    if(s.genes.includes('neuro_weapon'))score+=0.5;
+    return score;
+   },
+   narrateResult:(s,score)=>{
+    if(score>=3.5)return`${s.name} identified a concealed weapon via scent detection alone before the guest passed the first checkpoint. Zero incidents. Three high-value clients inquired about regular security contracts.`;
+    if(score>=2.5)return`Professional and effective. Event completed without incident.`;
+    if(score>=1.5)return`One minor disturbance contained. ${s.name}'s appearance caused brief panic in the crowd but no injuries.`;
+    return`${s.name}'s presence caused a scene. Event security compromised. Refund demanded.`;
+   },rewardMult:(score)=>score>=3.5?1.3:score>=2.5?1:score>=1.5?0.4:0},
+  // COVERT / UNDERGROUND
+  {id:'cov_assassin',cat:'COVERT',icon:'🗡',name:'SANCTIONED TERMINATION',
+   flavor:'"Single target. Confirmed political threat. Deniability essential."',
+   desc:'Silent elimination contract. Precision over power. Terrifying mutations are liabilities here.',
+   prefer:{dodge:true,spd:true,atk:true},rewardBio:15,rewardXP:15,risk:'HIGH',
+   socialReq:'COVERT',
+   blockers:['smell','skin_rot','muscle_spasm'],
+   evaluate:(s)=>{
+    let score=(s.stats.dodge/15)+(s.stats.spd/60)+(s.stats.atk/20);
+    if(s.genes.includes('predator_instinct'))score+=1.5;
+    if(s.genes.includes('elastic_skin'))score+=0.8;
+    if(s.genes.includes('emot_damp'))score+=1;
+    if(s.genes.includes('neuro_weapon'))score+=1.2;
+    const visLoss=s.negAlts.filter(n=>['smell','skin_rot','bone_pain'].includes(n)).length;
+    score-=visLoss*1.5;
+    return score;
+   },
+   narrateResult:(s,score)=>{
+    if(score>=3.5)return`Target eliminated. No witnesses. No trace. Employer's client has already asked for a follow-up contract at 3x rate.`;
+    if(score>=2.5)return`Target eliminated. One witness neutralized. Evidence at scene minimal. Mission success.`;
+    if(score>=1.5)return`Target neutralized but exfil was messy. Security footage partially captured. Subject identified as "non-standard human."`;
+    return`Operation blown. Target escaped, subject narrowly exfiltrated. Evidence left at scene. Client furious.`;
+   },
+   rewardMult:(score)=>score>=3.5?2:score>=2.5?1:score>=1.5?0.3:0},
+  {id:'cov_extract',cat:'COVERT',icon:'🚁',name:'ASSET EXTRACTION',
+   flavor:'"Retrieve the asset. Asset may not wish to be retrieved."',
+   desc:'Non-lethal acquisition operation. Balanced profile. Intimidation useful, but not at expense of stealth.',
+   prefer:{spd:true,str:true,int:true},rewardBio:11,rewardXP:12,risk:'MED',
+   socialReq:'none',
+   blockers:['aggro_leak'],
+   evaluate:(s)=>{
+    let score=(s.stats.spd/60)+(s.stats.str/15)*0.7+(s.stats.int/10)*0.5;
+    if(s.genes.includes('dense_muscle'))score+=0.8;
+    if(s.genes.includes('chem_track'))score+=1;
+    if(s.genes.includes('neural_clock'))score+=0.8;
+    if(s.negAlts.includes('psychosis'))score-=1;
+    return score;
+   },
+   narrateResult:(s,score)=>{
+    if(score>=3.5)return`${s.name} located, pacified, and extracted the asset in 18 minutes. Asset arrived unharmed if badly frightened. Employer ecstatic.`;
+    if(score>=2.5)return`Asset extracted with minor complications. Some property damage. Client satisfied with outcome.`;
+    if(score>=1.5)return`Asset secured but the operation took 6 hours longer than planned and drew attention. Client unhappy but paid partial.`;
+    return`Asset escaped during transfer. Mission failed.`;
+   },rewardMult:(score)=>score>=3.5?1.5:score>=2.5?1:score>=1.5?0.4:0},
+  // DIPLOMATIC / SOCIAL
+  {id:'dip_negotiate',cat:'DIPLOMATIC',icon:'🤝',name:'NEGOTIATION PROXY',
+   flavor:'"Attend meeting in our representative\'s place. Your... presence... should encourage agreement."',
+   desc:'Intimidating subject used to pressure negotiations. Requires high INT and controlled appearance.',
+   prefer:{int:true},rewardBio:9,rewardXP:11,risk:'LOW',
+   socialReq:'TOLERABLE',
+   blockers:['aggro_leak','psychosis','vocaloss','skin_rot'],
+   evaluate:(s)=>{
+    let score=(s.stats.int/10)*1.2;
+    if(s.genes.includes('neuro_weapon'))score+=2;
+    if(s.genes.includes('memory_engram'))score+=1;
+    if(s.genes.includes('emot_damp'))score+=0.8;
+    if(s.negAlts.includes('tremors'))score-=0.5;
+    if(s.negAlts.length>1)score-=0.8;
+    return score;
+   },
+   narrateResult:(s,score)=>{
+    if(score>=3.5)return`The opposing party agreed to all terms within 8 minutes. Three representatives reported "an overwhelming urge to cooperate." Signed contracts delivered same day.`;
+    if(score>=2.5)return`Successful negotiation. Favorable terms secured. ${s.name}'s presence clearly influenced the outcome.`;
+    if(score>=1.5)return`Agreement reached, but below optimal terms. ${s.name}'s demeanor was unsettling but not enough to fully shift the balance.`;
+    return`Negotiations collapsed when the opposing party fled the building. No contract.`;
+   },rewardMult:(score)=>score>=3.5?1.5:score>=2.5?1:score>=1.5?0.6:0},
+  {id:'dip_propaganda',cat:'DIPLOMATIC',icon:'📡',name:'PROPAGANDA MATERIAL',
+   flavor:'"We want to show the world what the future of humanity looks like. You are the future."',
+   desc:'Subject used as a public image asset. Low mutation visibility = high reward. Extreme mutations = disaster.',
+   prefer:{int:true},rewardBio:8,rewardXP:8,risk:'LOW',
+   socialReq:'VISIBLE',
+   blockers:['skin_rot','aggro_leak','psychosis','smell','vocaloss'],
+   evaluate:(s)=>{
+    const negPen=s.negAlts.length*1.2;
+    const mutVis=s.genes.length*0.3;
+    let score=3-negPen-mutVis+(s.stats.int/10)*0.5;
+    if(s.genes.includes('emot_damp'))score+=0.5;
+    return Math.max(0,score);
+   },
+   narrateResult:(s,score)=>{
+    if(score>=3.5)return`${s.name} filmed a 4-part documentary series. Public response overwhelmingly positive. Three governments have reached out to the production company.`;
+    if(score>=2.5)return`Campaign launch successful. ${s.name} appears in 12 materials. Positive reception in target demographics.`;
+    if(score>=1.5)return`Mixed reception. Some segments of the public reacted with concern. Campaign scaled back.`;
+    return`Catastrophic public response. Campaign immediately pulled. Employer faces a PR crisis.`;
+   },rewardMult:(score)=>score>=3.5?1.5:score>=2.5?1:score>=1.5?0.4:0},
+  // UNDERGROUND ARENA
+  {id:'arena_fight',cat:'UNDERGROUND',icon:'🩸',name:'UNDERGROUND ARENA — OPEN WEIGHT',
+   flavor:'"No rules. No doctors. Crowd wants a monster. Give them one."',
+   desc:'Illegal gladiatorial combat. Extreme mutations are an ASSET here. Social consequences irrelevant.',
+   prefer:{atk:true,hp:true,def:true},rewardBio:14,rewardXP:14,risk:'HIGH',
+   socialReq:'none',
+   blockers:[],
+   evaluate:(s)=>{
+    let score=(s.stats.atk/20)+(s.stats.hp/100)+(s.stats.def/10);
+    const monsterBonus=s.genes.length*0.2;
+    const altBonus=s.negAlts.length*0.3;
+    score+=monsterBonus+altBonus;
+    if(s.genes.includes('reactive_spikes'))score+=1.5;
+    if(s.genes.includes('adrenal_overdrive'))score+=1.2;
+    if(s.genes.includes('regen_marrow'))score+=1;
+    return score;
+   },
+   narrateResult:(s,score)=>{
+    if(score>=3.5)return`The crowd went silent when ${s.name} entered. Then screaming. ${s.name} won all 5 bouts, the last in 11 seconds. Bookmakers refuse further bets.`;
+    if(score>=2.5)return`${s.name} won 3 of 4 matches. The crowd's chants could be heard from outside the building.`;
+    if(score>=1.5)return`2-2 record. ${s.name} survived the final bout but barely. Crowd split. Partial earnings.`;
+    return`${s.name} was outmatched and barely extracted alive. -10 HP permanently from injuries.`;
+   },
+   sideEffect:(s,score)=>{
+    if(score<1.5){const loss=10;s.stats.hp=Math.max(20,s.stats.hp-loss);return`⚠ HP permanently reduced by ${loss} from arena injuries`;}
+    if(score>=3.5){s.instability=Math.max(0,s.instability-5);return'✓ Adrenaline mastery reduced instability -5';}
+    return null;
+   },
+   rewardMult:(score)=>score>=3.5?1.8:score>=2.5?1:score>=1.5?0.4:0},
+  // SURVIVAL / EXPEDITION
+  {id:'exp_wild',cat:'EXPEDITION',icon:'🌿',name:'DEEP WILDERNESS SURVEY',
+   flavor:'"3 weeks. No extraction available. Bring back the data."',
+   desc:'Extended wilderness operation. Survival-focused. Metabolic and sensory mutations shine here.',
+   prefer:{hp:true,stam:true,int:true},rewardBio:9,rewardXP:10,risk:'MED',
+   socialReq:'none',
+   blockers:['metabolic_crash'],
+   evaluate:(s)=>{
+    let score=(s.stats.stam/100)+(s.stats.hp/100)*0.5+(s.stats.int/10)*0.3;
+    if(s.genes.includes('chem_track'))score+=1;
+    if(s.genes.includes('vibro_sense'))score+=0.8;
+    if(s.genes.includes('cryo_adapt'))score+=0.8;
+    if(s.genes.includes('fat_armor'))score+=0.7;
+    if(s.genes.includes('regen_marrow'))score+=1;
+    if(s.negAlts.includes('metabolic_crash'))score-=2;
+    return score;
+   },
+   narrateResult:(s,score)=>{
+    if(score>=3.5)return`${s.name} returned with 340GB of environmental data and the apparent ability to navigate by magnetic field. Survey team calls it "the most successful deployment in company history."`;
+    if(score>=2.5)return`Full survey completed on schedule. All data recovered. Minor wildlife incident resolved without injury.`;
+    if(score>=1.5)return`Survey completed but data collection was below quota. ${s.name} struggled in week 2 but pushed through.`;
+    return`${s.name} required emergency air extraction on day 9. Survey data minimal.`;
+   },rewardMult:(score)=>score>=3.5?1.4:score>=2.5?1:score>=1.5?0.5:0},
+];
+// Which contracts are currently available (refreshed by player)
+// subjects/contracts/market initialized at INIT below
+function refreshContracts(){
+  // Pick 5 random contracts from templates (mix of categories)
+  const shuffled=[...CONTRACT_TEMPLATES].sort(()=>Math.random()-0.5);
+  G.availableContracts=shuffled.slice(0,6).map(t=>({...t,assigned:null,result:null}));
+  if(typeof renderContracts==='function'&&document.getElementById('tab-contracts').classList.contains('on'))renderContracts();
+  pushNotif('New contracts available','ok');
+}
+function riskColor(r){return{HIGH:'var(--red)',MED:'var(--orange)',LOW:'var(--teal)'}[r]||'var(--dim)';}
+function catColor2(c){return{MILITARY:'#ff4a4a',SCIENTIFIC:'#1fd8e8',SECURITY:'#3a7fff',COVERT:'#b044ff',DIPLOMATIC:'#f5d000',UNDERGROUND:'#ff8800',EXPEDITION:'#3dff8f'}[c]||'#888';}
+function socialOK(subject,req){
+  if(req==='none')return true;
+  if(req==='COVERT'){
+    // Visible negative alterations block covert ops
+    const blockers=['skin_rot','smell','muscle_spasm','bone_pain'];
+    return !blockers.some(b=>subject.negAlts.includes(b));
+  }
+  if(req==='TOLERABLE'){
+    return subject.negAlts.filter(b=>['skin_rot','aggro_leak','bone_pain','muscle_spasm','smell'].includes(b)).length===0;
+  }
+  if(req==='VISIBLE'){
+    // Propaganda — subject needs to look somewhat human
+    return subject.negAlts.length<2&&subject.genes.length<8;
+  }
+  return true;
+}
+function runContract(contractIdx){
+  const contract=G.availableContracts[contractIdx];
+  const sub=G.subjects.find(s=>String(s.id)===String(contract.assigned)||s.id===contract.assigned);
+  if(!sub){pushNotif('No subject assigned!','warn');return;}
+  if(sub.status!=='available'){pushNotif(sub.name+' is not available!','warn');return;}
+  // Check hard blockers
+  const hardBlocked=contract.blockers&&contract.blockers.some(b=>sub.negAlts.includes(b));
+  if(hardBlocked){pushNotif('Subject has a blocking condition for this contract!','warn');return;}
+  // Check social requirement
+  if(!socialOK(sub,contract.socialReq||'none')){pushNotif('Subject fails social visibility requirements!','warn');return;}
+  sub.status='contract';
+  const rawScore=contract.evaluate(sub);
+  const roll=(Math.random()-0.5)*0.8; // ±0.4 luck
+  const score=Math.max(0,rawScore+roll);
+  const mult=contract.rewardMult(score);
+  const biomassGain=Math.round(contract.rewardBio*mult);
+  // Side effects
+  let sideMsg=null;
+  if(contract.sideEffect)sideMsg=contract.sideEffect(sub,score);
+  // Instability event
+  if(sub.instability>60&&Math.random()<0.3){
+    // Chance of instability spike during contract
+    sub.instability=Math.min(100,sub.instability+Math.round(Math.random()*15));
+    sideMsg=(sideMsg||'')+'⚠ Instability spiked during operation';
+  }
+  const narrative=contract.narrateResult(sub,score,roll);
+  const outcome=score>=2.5?'success':score>=1.5?'partial':'failure';
+  if(biomassGain>0){G.biomass+=biomassGain;renderHdr();}
+  // Log to subject
+  sub.contractHistory.push({name:contract.name,outcome,biomassGain,narrative});
+  contract.result={score,outcome,narrative,biomassGain,sideMsg};
+  // Check for subject explosion
+  let exploded=false;
+  if(sub.instability>=90&&Math.random()<0.25){
+    exploded=true;
+    subjectExplode(sub);
+  }
+  // Re-mark available after contract
+  if(!exploded)sub.status='available';
+  G.completedContracts.push({...contract});
+  // Remove from available list
+  G.availableContracts[contractIdx]=contract; // keep for result display
+  renderContracts();
+  renderHdr();
+  if(exploded)return;
+  pushNotif(outcome==='success'?`Contract complete! +${biomassGain} BIOMASS`:outcome==='partial'?`Partial success. +${biomassGain} BIOMASS`:`Contract failed. No payment.`,outcome==='success'?'ok':'bad');
+  // Chance of gaining a new subject from contract
+  if(outcome==='success'&&Math.random()<0.15){
+    const newSub=makeBlankSubject(rndName());
+    G.subjects.push(newSub);
+    pushNotif('Contract reward: New subject acquired — '+newSub.name,'ok');
+  }
+  // DNA reward chance based on contract category and performance
+  if(outcome==='success'&&score>=3.5){
+    const dnaChance={MILITARY:0.15,SCIENTIFIC:0.35,COVERT:0.20,EXPEDITION:0.30,UNDERGROUND:0.40,SECURITY:0.10,DIPLOMATIC:0.08}[contract.cat]||0.10;
+    if(Math.random()<dnaChance){
+      const rarity=(contract.cat==='SCIENTIFIC'||contract.cat==='EXPEDITION')?'rare':'common';
+      const awarded=awardRandomDNA(rarity);
+      if(awarded)setTimeout(()=>pushNotif('🧬 CONTRACT REWARD: '+awarded.icon+' '+awarded.name+' DNA sample acquired!','ok'),800);
+    }
+  }
+  // Arena always has elevated DNA reward on top performance
+  if(contract.id==='arena_fight'&&outcome==='success'&&score>=3.5){
+    const legendary=Math.random()<0.20;
+    const awarded=awardRandomDNA(legendary?'legendary':'rare');
+    if(awarded)setTimeout(()=>pushNotif('🏆 ARENA REWARD: '+awarded.icon+' '+awarded.name+' DNA — '+awarded.rarity.toUpperCase()+'!','ok'),1000);
+  }
+}
+function assignSubjectToContract(contractIdx,subId){
+  const contract=G.availableContracts[contractIdx];
+  if(!contract||contract.result)return;
+  // Match subject by id — try numeric then string match
+  if(!subId){contract.assigned=null;renderContracts();return;}
+  const numId=parseFloat(subId);
+  const sub=G.subjects.find(s=>s.id===numId||s.id===subId);
+  contract.assigned=sub?sub.id:null;
+  renderContracts();
+}
+function renderContracts(){
+  const grid=document.getElementById('contractGrid');
+  if(!grid)return;
+  const available=G.subjects.filter(s=>s.status==='available');
+  grid.innerHTML=G.availableContracts.map((c,i)=>{
+    const cc=catColor2(c.cat);const rc=riskColor(c.risk);
+    const done=!!c.result;
+    const prefs=Object.keys(c.prefer||{}).map(k=>`<span class="cc-pill pref">PREF: ${k.toUpperCase()}</span>`).join('');
+    const blockers=(c.blockers||[]).map(b=>{const a=NEG_ALTERATIONS.find(x=>x.id===b);return a?`<span class="cc-pill risk-high">BLOCKS: ${a.name}</span>`:''}).join('');
+    const socialPill=c.socialReq&&c.socialReq!=='none'?`<span class="cc-pill social">SOCIAL: ${c.socialReq}</span>`:'';
+    let resultHtml='';
+    if(done){
+      const r=c.result;
+      const rc2=r.outcome==='success'?'var(--green)':r.outcome==='partial'?'var(--orange)':'var(--red)';
+      resultHtml=`<div class="cc-result">
+        <div class="cr-label" style="color:${rc2}">${r.outcome==='success'?'✓ SUCCESS':r.outcome==='partial'?'◑ PARTIAL':'✗ FAILURE'} — +${r.biomassGain} BIOMASS</div>
+        <div class="cr-text">${r.narrative}</div>
+        ${r.sideMsg?`<div style="font-family:var(--mono);font-size:9px;color:var(--orange);margin-top:4px">${r.sideMsg}</div>`:''}
+      </div>`;
+    }
+    const assignHtml=done?'':`<div class="cc-assign">
+      <select onchange="assignSubjectToContract(${i},this.value)">
+        <option value="">— ASSIGN SUBJECT —</option>
+        ${available.map(s=>`<option value="${s.id}" ${String(c.assigned)===String(s.id)?'selected':''}>${s.name} (INT:${Math.round(s.stats.int)} ATK:${Math.round(s.stats.atk)} INSTAB:${s.instability}%)</option>`).join('')}
+      </select>
+      <button class="btn btn-g" style="font-size:9px;padding:8px 14px;white-space:nowrap" onclick="runContract(${i})" ${!c.assigned?'disabled':''}>DEPLOY</button>
+    </div>`;
+    return`<div class="cc${done?' completed':''}">
+      <div class="cc-top">
+        <div>
+          <div class="cc-name">${c.icon} ${c.name}</div>
+          <div class="cc-flavor">${c.flavor}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+          <span class="cc-badge" style="border-color:${cc};color:${cc}">${c.cat}</span>
+          <span class="cc-badge" style="border-color:${rc};color:${rc}">RISK: ${c.risk}</span>
+          <span class="cc-badge" style="border-color:var(--green);color:var(--green)">+${c.rewardBio} BM</span>
+        </div>
+      </div>
+      <div class="cc-desc">${c.desc}</div>
+      <div class="cc-meta">${prefs}${blockers}${socialPill}</div>
+      ${assignHtml}
+      ${resultHtml}
+    </div>`;
+  }).join('');
+}
+// ═══════════════════════════════════════════════════════
+//  BLACK MARKET
+// ═══════════════════════════════════════════════════════
+const MARKET_NAMES=['AJAX','BRAVO','CRONUS','DAEDALUS','EREBUS','FAUST','GOLEM','HYDRA','ICHOR','JUDAS','KRONOS','LAZARUS','MEDUSA','NEMESIS','ORION'];
+function genMarketSubject(){
+  const name=MARKET_NAMES[Math.floor(Math.random()*MARKET_NAMES.length)]+'-'+String(Math.floor(Math.random()*99)+1).padStart(2,'0');
+  const numMuts=Math.floor(Math.random()*4)+1;
+  const shuffle=[...MUTATIONS].sort(()=>Math.random()-0.5);
+  const genes=[];
+  for(const m of shuffle){
+    if(genes.length>=numMuts)break;
+    // Only add if requirements roughly met
+    const reqsMet=m.req.every(r=>genes.includes(r));
+    const noConflict=!m.conflicts.some(c=>genes.includes(c));
+    if(reqsMet&&noConflict)genes.push(m.id);
+  }
+  // Build stats
+  let stats={hp:100,atk:20,def:10,spd:60,str:15,dodge:15,int:10,stam:100,regen:0,caloric:0};
+  let instab=0;
+  for(const id of genes){
+    const m=getMut(id);if(!m)continue;
+    if(m.stats)for(const[k,v]of Object.entries(m.stats))stats[k]=(stats[k]||0)+v;
+    instab+=(m.instab||0);
+  }
+  // Negative alterations — 0-3 random ones
+  const numNegs=Math.floor(Math.random()*3); // 0,1,2
+  const shuffNegs=[...NEG_ALTERATIONS].sort(()=>Math.random()-0.5);
+  const negAlts=shuffNegs.slice(0,numNegs).map(n=>n.id);
+  for(const nid of negAlts){
+    const na=NEG_ALTERATIONS.find(x=>x.id===nid);
+    if(na&&na.statMod)for(const[k,v]of Object.entries(na.statMod))stats[k]=(stats[k]||0)+v;
+  }
+  return{id:Date.now()+Math.random(),name,genes,combos:[],stats,stage:Math.floor(genes.length/2),
+    instability:Math.min(100,instab),status:'available',negAlts,trainLog:[],contractHistory:[],trainingTurns:0,contractTurns:0};
+}
+function refreshMarket(){
+  G.marketStock=Array.from({length:4},genMarketSubject);
+  refreshDNAMarket();
+  if(typeof renderMarket==='function'&&document.getElementById('tab-market')&&document.getElementById('tab-market').classList.contains('on'))renderMarket();
+  pushNotif('Market restocked','ok');
+}
+function buyMarketSubject(idx){
+  if(G.biomass<20){pushNotif('Need 20 BIOMASS!','warn');return;}
+  G.biomass-=20;
+  const sub={...G.marketStock[idx]};
+  G.subjects.push(sub);
+  G.marketStock.splice(idx,1);
+  renderHdr();renderMarket();renderRoster();
+  pushNotif(sub.name+' acquired from black market','ok');
+  if(sub.negAlts.length>0){
+    const names=sub.negAlts.map(n=>(NEG_ALTERATIONS.find(x=>x.id===n)||{}).name||n).join(', ');
+    setTimeout(()=>pushNotif('WARNING: '+sub.name+' has pre-existing conditions: '+names,'bad'),1200);
+  }
+}
+function renderMarket(){
+  const grid=document.getElementById('marketGrid');if(!grid)return;
+  // --- DNA SECTION ---
+  const dnaInvHtml=G.dnaInventory.length?
+    G.dnaInventory.filter(s=>!s.used).map(s=>{
+      const a=ANIMAL_DNA.find(x=>x.id===s.animalId);
+      if(!a)return'';
+      const rc=dnaRarityColor(a);
+      return`<span style="font-family:var(--mono);font-size:8px;padding:2px 7px;border:1px solid ${rc};color:${rc};display:inline-block;margin:2px">${a.icon} ${a.name}</span>`;
+    }).join(''):
+    '<span style="font-family:var(--mono);font-size:9px;color:var(--dim)">No samples in inventory.</span>';
+
+  const dnaStockHtml=(G.dnaMarketStock||[]).map(a=>{
+    const rc=dnaRarityColor(a);
+    const mutNames=a.possibleMuts.map(mid=>{const m=getMut(mid);return m?`${m.icon} ${m.name}`:'?';}).join(' / ');
+    return`<div class="mkt-card" style="border-color:${rc}">
+      <div style="font-family:var(--mono);font-size:8px;letter-spacing:1px;margin-bottom:4px;color:${rc}">${a.status==='EXTINCT'?'☠ EXTINCT SPECIMEN':'🌿 LIVING SPECIES'} · ${a.rarity.toUpperCase()}</div>
+      <div class="mkt-name" style="color:${rc}">${a.icon} ${a.name}</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin:5px 0">${a.desc}</div>
+      <div style="font-family:var(--mono);font-size:8px;color:var(--text);margin-bottom:5px">SOURCE: ${a.source}</div>
+      <div style="font-family:var(--mono);font-size:8px;color:var(--cyan);margin-bottom:3px">POSSIBLE MUTATIONS:</div>
+      <div style="font-family:var(--mono);font-size:8px;color:var(--text2);margin-bottom:6px">${mutNames}</div>
+      <div style="font-family:var(--mono);font-size:8px;margin-bottom:8px">
+        <span style="color:var(--green)">SUCCESS: ${Math.round(a.successChance*100)}%</span>
+        &nbsp;·&nbsp;<span style="color:var(--red)">ADVERSE: ${Math.round(a.adverseChance*100)}%</span>
+      </div>
+      <button class="btn" style="width:100%;font-size:10px;border-color:${rc};color:${rc}" onclick="buyDNA('${a.id}')">ACQUIRE SAMPLE — ${a.cost} BM</button>
+    </div>`;
+  }).join('');
+
+  // --- SUBJECTS SECTION ---
+  const subjectsHtml=G.marketStock.length?G.marketStock.map((s,i)=>{
+    const negHtml=s.negAlts.length?`<div style="margin-top:6px"><div style="font-family:var(--mono);font-size:8px;color:var(--red);letter-spacing:1px;margin-bottom:3px">⚠ PRE-EXISTING CONDITIONS</div>
+      ${s.negAlts.map(nid=>{const na=NEG_ALTERATIONS.find(x=>x.id===nid);return na?`<span class="neg-alt">${na.name}</span>`:''}).join('')}</div>`:'<div style="font-family:var(--mono);font-size:8px;color:var(--green);margin-top:6px">✓ No known pre-conditions</div>';
+    const geneHtml=s.genes.map(id=>{const m=getMut(id);return m?`<span style="font-family:var(--mono);font-size:8px;padding:2px 5px;border:1px solid var(--border);color:var(--dim)">${m.icon} ${m.name}</span>`:''}).join('');
+    return`<div class="mkt-card">
+      <div style="font-family:var(--mono);font-size:8px;color:var(--red);letter-spacing:1px;margin-bottom:4px">// BLACK MARKET SUBJECT //</div>
+      <div class="mkt-name">${s.name}</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-bottom:6px">INSTAB: ${s.instability}% · ${s.genes.length} mutations pre-loaded</div>
+      <div class="mkt-genes">${geneHtml}</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text);margin-top:4px">HP:${Math.round(s.stats.hp)} ATK:${Math.round(s.stats.atk)} DEF:${Math.round(s.stats.def)} INT:${Math.round(s.stats.int)}</div>
+      ${negHtml}
+      <button class="btn btn-r" style="width:100%;margin-top:10px;font-size:10px" onclick="buyMarketSubject(${i})">ACQUIRE — 20 BIOMASS</button>
+    </div>`;
+  }).join(''):
+  '<div style="font-family:var(--mono);font-size:10px;color:var(--dim)">No subjects available.</div>';
+
+  grid.innerHTML=`
+    <div style="grid-column:1/-1;font-family:var(--display);font-size:22px;letter-spacing:3px;color:var(--orange);margin-bottom:6px">🧬 ANIMAL DNA SAMPLES</div>
+    <div style="grid-column:1/-1;font-family:var(--mono);font-size:9px;color:var(--dim);margin-bottom:4px">Inject into subjects via the Roster tab. Results vary — adverse reactions possible.</div>
+    <div style="grid-column:1/-1;font-family:var(--mono);font-size:9px;color:var(--cyan);margin-bottom:10px">INVENTORY: ${dnaInvHtml}</div>
+    ${dnaStockHtml}
+    <div style="grid-column:1/-1;font-family:var(--display);font-size:22px;letter-spacing:3px;color:var(--red);margin:18px 0 6px">☠ BLACK MARKET SUBJECTS</div>
+    ${subjectsHtml}`;
+}
+// ═══════════════════════════════════════════════════════
+//  SUBJECT EXPLOSION
+// ═══════════════════════════════════════════════════════
+function subjectExplode(sub){
+  sub.status='dead';
+  showModal('CATASTROPHIC INSTABILITY — '+sub.name,
+    `SUBJECT ${sub.name} HAS UNDERGONE UNCONTROLLED BIOLOGICAL CASCADE.\n\n`+
+    `Instability reached ${sub.instability}%. Genetic architecture failed. Rapid uncontrolled apoptosis across all major organ systems followed by cellular detonation.\n\n`+
+    `Subject is non-recoverable. Containment protocol initiated. Lab section sealed for decontamination.\n\n`+
+    `All active mutations and data lost. Acquire a new subject from the Black Market or earn one via contracts.`);
+  pushNotif('⚠ '+sub.name+' has EXPLODED — subject lost','bad');
+  addEvent('CATASTROPHIC LOSS: '+sub.name+' biological cascade failure','warn');
+  // Remove dead subject after acknowledgement
+  setTimeout(()=>{G.subjects=G.subjects.filter(s=>s.id!==sub.id);renderRoster();},500);
+}
+function checkSubjectInstability(){
+  for(const sub of G.subjects){
+    if(sub.status==='dead')continue;
+    if(sub.instability>=95){
+      if(Math.random()<0.4)subjectExplode(sub);
+    } else if(sub.instability>=80&&Math.random()<0.1){
+      // Spike event without explosion
+      const msgs=['MICRO-RUPTURE event. Neural tissue degrading.','Uncontrolled osteogenesis detected.','Organ stress critical. Intervention required.'];
+      pushNotif('⚠ '+sub.name+': '+msgs[Math.floor(Math.random()*msgs.length)],'bad');
+    }
+  }
+}
+// ═══════════════════════════════════════════════════════
+//  TRAINING in ROSTER
+// ═══════════════════════════════════════════════════════
+function trainSubject(subIdx,programId){
+  const sub=G.subjects[subIdx];
+  const prog=TRAINING_PROGRAMS.find(p=>p.id===programId);
+  if(!sub||!prog){pushNotif('Invalid training request','warn');return;}
+  if(sub.status!=='available'){pushNotif(sub.name+' is not available for training!','warn');return;}
+  if(G.biomass<prog.cost){pushNotif('Need '+prog.cost+' BIOMASS for training!','warn');return;}
+  G.biomass-=prog.cost;
+  sub.status='training';
+  const result=prog.apply(sub);
+  sub.status='available';
+  sub.trainLog.push({program:prog.name,result:result.result,log:result.log});
+  // Instability risk from intense training
+  if(sub.instability>50&&Math.random()<0.15){
+    sub.instability=Math.min(100,sub.instability+Math.round(Math.random()*8));
+    pushNotif('Training spiked instability in '+sub.name,'bad');
+  }
+  checkSubjectInstability();
+  renderHdr();renderRoster();
+  pushNotif(`${sub.name}: ${prog.name} — ${result.log}`,result.result==='success'?'ok':result.result==='partial'?'ok':'bad');
+}
+// ═══════════════════════════════════════════════════════
+//  ENHANCED ROSTER — with subjects, training, instability warnings
+// ═══════════════════════════════════════════════════════
+function renderRoster(){
+  const grid=document.getElementById('rosterGrid');if(!grid)return;
+  // Classic saved subjects from lab
+  const savedHtml=G.roster.length?`
+    <div style="font-family:var(--mono);font-size:9px;color:var(--cyan);letter-spacing:2px;margin-bottom:8px">// BATTLE ROSTER (Lab-Built) //</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin-bottom:20px">
+    ${G.roster.map((s,i)=>{const st=STAGES[s.stage]||STAGES[0];
+      return`<div class="rc${G.selectedRosterIdx===i?' sel':''}" onclick="selectRoster(${i})">
+        <div class="rc-name">${s.name}</div>
+        <div style="font-family:var(--mono);font-size:9px;color:${st.color};margin-bottom:6px">${st.label} · INSTAB: ${s.instability}%</div>
+        <div style="font-family:var(--mono);font-size:8px;color:var(--dim);margin-bottom:8px">${s.genes.length} mutations · ${s.combos.length} combos</div>
+        <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px">${s.genes.map(g=>{const m=getMut(g);return m?`<span style="font-family:var(--mono);font-size:9px;padding:1px 5px;border:1px solid var(--border);color:var(--dim)">${m.icon}</span>`:''}).join('')}</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--text2)">HP:${s.stats.hp} ATK:${s.stats.atk} DEF:${s.stats.def} SPD:${s.stats.spd}</div>
+        ${s.combos.length?`<div style="font-family:var(--mono);font-size:8px;color:var(--yellow);margin-top:5px">⚡ ${s.combos.map(c=>c.name).join(' · ')}</div>`:''}
+      </div>`;
+    }).join('')}
+    </div>`:'';
+  const subjectsHtml=G.subjects.length?G.subjects.map(sub=>{
+    const instColor=sub.instability>75?'var(--red)':sub.instability>50?'var(--orange)':sub.instability>25?'var(--yellow)':'var(--green)';
+    const statusClass={available:'ssb-available',contract:'ssb-contract',training:'ssb-training',dead:'ssb-dead'}[sub.status]||'ssb-available';
+    const negHtml=sub.negAlts.map(nid=>{const na=NEG_ALTERATIONS.find(x=>x.id===nid);return na?`<span class="neg-alt" title="${na.desc}">${na.name}</span>`:''}).join('');
+    const historyHtml=sub.contractHistory.length?`<div style="font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:4px;border-top:1px solid var(--border);padding-top:4px">HISTORY: ${sub.contractHistory.slice(-2).map(h=>`${h.name} → ${h.outcome}`).join(' | ')}</div>`:'';
+    const geneHtml=sub.genes.map(id=>{const m=getMut(id);return m?`<span style="font-family:var(--mono);font-size:8px;padding:1px 5px;border:1px solid var(--border);color:var(--dim)">${m.icon} ${m.name}</span>`:''}).join('');
+    const sidx=G.subjects.indexOf(sub);const trainHtml=sub.status==='available'?`<div class="train-grid">${TRAINING_PROGRAMS.map(p=>`<button class="train-btn" onclick="trainSubject(${sidx},'${p.id}')"><strong>${p.icon} ${p.name}</strong><br>-${p.cost} BM · ${p.desc.substring(0,40)}...</button>`).join('')}</div>`:'<div style="font-family:var(--mono);font-size:9px;color:var(--dim);padding:4px 0">Subject unavailable for training.</div>';
+    const lastTrain=sub.trainLog.length?sub.trainLog[sub.trainLog.length-1]:null;
+    return`<div class="rc" style="border-color:${sub.status==='dead'?'var(--red)':sub.instability>75?'var(--red)':'var(--border)'}">
+      <span class="sub-status-badge ${statusClass}">${sub.status.toUpperCase()}</span>
+      <div class="rc-name">${sub.name}</div>
+      <div style="font-family:var(--mono);font-size:9px;color:${instColor};margin-bottom:4px">INSTAB: ${sub.instability}%${sub.instability>75?' ⚠ CRITICAL':''}</div>
+      <div style="font-family:var(--mono);font-size:9px;margin-bottom:6px">HP:${Math.round(sub.stats.hp)} ATK:${Math.round(sub.stats.atk)} DEF:${Math.round(sub.stats.def)} INT:${Math.round(sub.stats.int)} SPD:${Math.round(sub.stats.spd)}</div>
+      ${geneHtml?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px">${geneHtml}</div>`:'<div style="font-family:var(--mono);font-size:8px;color:var(--dim);margin-bottom:6px">No mutations applied</div>'}
+      ${negHtml?`<div style="margin-bottom:6px"><div style="font-family:var(--mono);font-size:8px;color:var(--red);letter-spacing:1px;margin-bottom:3px">⚠ CONDITIONS</div>${negHtml}</div>`:''}
+      ${sub.status!=='dead'?`<div style="font-family:var(--mono);font-size:9px;color:var(--cyan);letter-spacing:1px;margin:8px 0 4px">TRAINING PROGRAMS</div>${trainHtml}`:'<div style="font-family:var(--mono);font-size:10px;color:var(--red);padding:8px 0">SUBJECT TERMINATED — ACQUIRE REPLACEMENT</div>'}
+      ${lastTrain?`<div class="rc-trained">Last training: ${lastTrain.program} → ${lastTrain.log}</div>`:''}
+      ${historyHtml}
+      ${sub.status==='available'&&G.dnaInventory.filter(s=>!s.used).length?`
+        <div style="font-family:var(--mono);font-size:9px;color:var(--orange);letter-spacing:1px;margin:8px 0 4px">🧬 DNA INJECTION</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <select id="dna-select-${sidx}" style="background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:6px 8px;font-family:var(--mono);font-size:8px;flex:1;min-width:140px">
+            <option value="">— SELECT SAMPLE —</option>
+            ${G.dnaInventory.filter(s=>!s.used).map(s=>{const a=ANIMAL_DNA.find(x=>x.id===s.animalId);return a?`<option value="${s.id}">${a.icon} ${a.name} [${a.rarity}] — ${Math.round(a.successChance*100)}% success</option>`:''}).join('')}
+          </select>
+          <button class="btn" style="border-color:var(--orange);color:var(--orange);font-size:9px;padding:7px 12px;white-space:nowrap"
+            onclick="const sel=document.getElementById('dna-select-${sidx}');if(sel&&sel.value)injectDNA(${sidx},parseFloat(sel.value)||sel.value)">INJECT</button>
+        </div>
+        <div style="font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:3px">DNA-only mutations cannot be applied through the lab. Injection outcome is probabilistic.</div>`:''}
+    </div>`;
+  }).join(''):`<div style="font-family:var(--mono);font-size:10px;color:var(--dim);padding:20px">All subjects lost. Acquire new subjects via Contracts or Black Market.</div>`;
+  grid.innerHTML=savedHtml+`
+    <div style="font-family:var(--mono);font-size:9px;color:var(--cyan);letter-spacing:2px;margin-bottom:8px">// FIELD SUBJECTS (${G.subjects.filter(s=>s.status!=='dead').length} ACTIVE) //</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">${subjectsHtml}</div>`;
+}
+function selectRoster(i){G.selectedRosterIdx=i;renderRoster();renderBattleInfo();}
+function renderBattleInfo(){
+  const info=document.getElementById('battleSubjectInfo');
+  if(G.selectedRosterIdx===null){info.textContent='Select subject from Roster tab, then return here to deploy.';return;}
+  const s=G.roster[G.selectedRosterIdx];
+  info.innerHTML=`SELECTED: <span style="color:var(--green)">${s.name}</span> | ${s.genes.length} mutations | ${s.combos.length} combos | HP: ${s.stats.hp} | INSTAB: ${s.instability}%`;
+}
+function switchLabPane(pane,btn){
+  const map={body:'lab-pane-body',mutations:'lab-pane-mutations',biology:'lab-pane-biology'};
+  Object.values(map).forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('mob-active');});
+  document.querySelectorAll('.mob-pane-btn').forEach(b=>b.classList.remove('on'));
+  const target=document.getElementById(map[pane]);
+  if(target)target.classList.add('mob-active');
+  if(btn)btn.classList.add('on');
+}
+
+// ═══════════════════════════════════════════════════════
+//  ANIMAL DNA CATALOG
+// ═══════════════════════════════════════════════════════
+const ANIMAL_DNA=[
+  // ── LIVING ──
+  {id:'mantis_shrimp',name:'MANTIS SHRIMP',status:'LIVING',icon:'🦐',rarity:'rare',
+   desc:'Stomatopod — most complex visual system on Earth. Strikes with cavitation force exceeding a gunshot.',
+   source:'Deep Pacific collection. Black market only.',cost:18,
+   possibleMuts:['mantis_vision','cavitation_strike'],
+   successChance:0.55,adverseChance:0.15,
+   adverseEffect:'Uncontrolled cavitation spasms in forearms — 15 self-damage per turn until stabilised'},
+  {id:'tardigrade',name:'TARDIGRADE',status:'LIVING',icon:'🐻',rarity:'uncommon',
+   desc:'Water bear — survives vacuum, radiation, desiccation. Nearly indestructible at 1mm scale.',
+   source:'Lab-cultured. Contracts and market.',cost:12,
+   possibleMuts:['cryptobiosis','cancer_suppress'],
+   successChance:0.65,adverseChance:0.10,
+   adverseEffect:'Partial desiccation response — skin periodically hardens and cracks'},
+  {id:'electric_eel',name:'ELECTRIC EEL',status:'LIVING',icon:'⚡',rarity:'uncommon',
+   desc:'Electrophorus voltai — 860V discharge. Electrolocation system for blind navigation.',
+   source:'Amazon basin collection. Contracts.',cost:14,
+   possibleMuts:['bioelectric_field'],
+   successChance:0.60,adverseChance:0.20,
+   adverseEffect:'Random 200V discharges when subject is startled — destroys electronics and injures nearby allies'},
+  {id:'axolotl',name:'AXOLOTL',status:'LIVING',icon:'🦎',rarity:'rare',
+   desc:'Mexican salamander — only vertebrate that can regenerate heart, spine, and brain tissue fully.',
+   source:'Critically endangered. Lab-synthesised extract only.',cost:20,
+   possibleMuts:['limb_regen','cancer_suppress'],
+   successChance:0.50,adverseChance:0.15,
+   adverseEffect:'Uncontrolled blastema formation — benign growths emerge at random sites'},
+  {id:'mimic_octopus',name:'MIMIC OCTOPUS',status:'LIVING',icon:'🐙',rarity:'rare',
+   desc:'Thaumoctopus mimicus — instantaneous colour/texture camouflage. Mimics 15+ species.',
+   source:'Indo-Pacific. Covert ops reward.',cost:18,
+   possibleMuts:['chromatophore'],
+   successChance:0.55,adverseChance:0.12,
+   adverseEffect:'Loss of colour control — skin broadcasts emotions uncontrollably'},
+  {id:'honey_badger',name:'HONEY BADGER',status:'LIVING',icon:'🦡',rarity:'uncommon',
+   desc:'Mellivora capensis — SCN9A pain gene variant. Near-immune to venom, keeps fighting after injuries that should be fatal.',
+   source:'African savanna. Arena and contracts.',cost:10,
+   possibleMuts:['pain_immunity'],
+   successChance:0.70,adverseChance:0.08,
+   adverseEffect:'SCN9A misfire — phantom pain signals flood nervous system periodically'},
+  {id:'naked_mole_rat',name:'NAKED MOLE RAT',status:'LIVING',icon:'🐀',rarity:'uncommon',
+   desc:'Heterocephalus glaber — spontaneously cancer-free. Pain immunity via TRPV1 mutation. Extreme longevity.',
+   source:'Lab colony. Scientific contracts.',cost:10,
+   possibleMuts:['cancer_suppress','pain_immunity'],
+   successChance:0.65,adverseChance:0.05,
+   adverseEffect:'Eusocial pheromone expression — subject becomes involuntarily submissive around dominant individuals'},
+  {id:'platypus',name:'PLATYPUS',status:'LIVING',icon:'🦆',rarity:'uncommon',
+   desc:'Ornithorhynchus anatinus — electroreceptors on bill, venomous spurs, mammal that lays eggs.',
+   source:'Australian protected species. Black market only.',cost:16,
+   possibleMuts:['ampullae','bioelectric_field'],
+   successChance:0.55,adverseChance:0.18,
+   adverseEffect:'Venom spur expression on ankle causes self-inflicted wounds during movement'},
+  // ── EXTINCT ──
+  {id:'megalodon',name:'MEGALODON',status:'EXTINCT',icon:'🦈',rarity:'legendary',
+   desc:'Otodus megalodon — 18m apex predator. Bite force 18 tonnes. Ampullae of Lorenzini for electromagnetic prey detection.',
+   source:'Fossilised tooth DNA. Extremely rare. Arena champion reward.',cost:30,
+   possibleMuts:['ampullae','jaw_density'],
+   successChance:0.45,adverseChance:0.25,
+   adverseEffect:'Jaw reconstruction goes wrong — mandible partially fused, speech lost, eating impaired'},
+  {id:'trex',name:'TYRANNOSAURUS REX',status:'EXTINCT',icon:'🦖',rarity:'legendary',
+   desc:'T. rex — olfactory bulbs 2× relative brain size. Bone-crushing bite. Rapid growth metabolism.',
+   source:'Exceptional fossil preservation only. Top-tier contracts.',cost:28,
+   possibleMuts:['trex_olfaction','jaw_density'],
+   successChance:0.45,adverseChance:0.20,
+   adverseEffect:'Uncontrolled olfactory hypersensitivity — subject incapacitated by smells for hours'},
+  {id:'pterosaur',name:'QUETZALCOATLUS',status:'EXTINCT',icon:'🦅',rarity:'legendary',
+   desc:'Quetzalcoatlus northropi — largest flying animal ever at 10m wingspan. Pneumatised hollow bones. Mass 200–250kg.',
+   source:'Cretaceous amber extract. Rare contracts.',cost:25,
+   possibleMuts:['hollow_bones'],
+   successChance:0.50,adverseChance:0.18,
+   adverseEffect:'Pneumatisation incomplete — bones partially hollow but structurally weakened, fracture at moderate impact'},
+  {id:'dunkleosteus',name:'DUNKLEOSTEUS',status:'EXTINCT',icon:'🐟',rarity:'rare',
+   desc:'Dunkleosteus terrelli — 8m placoderm. Dermal bone skull 5cm thick. Self-sharpening bone blade jaws.',
+   source:'Devonian fossil. Military and market.',cost:20,
+   possibleMuts:['dunkle_skull','jaw_density'],
+   successChance:0.52,adverseChance:0.18,
+   adverseEffect:'Cranial bone overgrowth compresses optic nerves — partial blindness risk'},
+  {id:'arthropleura',name:'ARTHROPLEURA',status:'EXTINCT',icon:'🦂',rarity:'rare',
+   desc:'Arthropleura armata — 2.6m giant millipede. Carboniferous forests. Multi-segmented chitinous exoskeleton.',
+   source:'Carboniferous coal seam extract. Black market.',cost:22,
+   possibleMuts:['arthro_chitin'],
+   successChance:0.48,adverseChance:0.22,
+   adverseEffect:'Exoskeleton grows asymmetrically — causes chronic spinal misalignment and pain'},
+  {id:'basilosaurus',name:'BASILOSAURUS',status:'EXTINCT',icon:'🐳',rarity:'rare',
+   desc:'Basilosaurus isis — 18m early whale. Adapted for extreme depth. Echolocation. Myoglobin density 10× human.',
+   source:'Eocene fossil. Scientific contracts and market.',cost:18,
+   possibleMuts:['deep_pressure'],
+   successChance:0.58,adverseChance:0.12,
+   adverseEffect:'Diving reflex triggers randomly — bradycardia episodes during surface activities'},
+  {id:'sarcosuchus',name:'SARCOSUCHUS',status:'EXTINCT',icon:'🐊',rarity:'rare',
+   desc:'Sarcosuchus imperator — 12m "SuperCroc." Heavily osteoderm-armoured. Bospheriodon cranial anatomy.',
+   source:'Cretaceous North Africa fossil. Arena and market.',cost:20,
+   possibleMuts:['sarco_armor'],
+   successChance:0.55,adverseChance:0.15,
+   adverseEffect:'Scute growth invades joint space — reduces mobility further than intended'},
+  {id:'therizinosaurus',name:'THERIZINOSAURUS',status:'EXTINCT',icon:'🦕',rarity:'rare',
+   desc:'Therizinosaurus cheloniformis — 70cm claws, largest in known fossil record. Herbivore that used claws for branch pulling.',
+   source:'Mongolia fossil. Covert rewards and market.',cost:22,
+   possibleMuts:['raking_claw'],
+   successChance:0.52,adverseChance:0.18,
+   adverseEffect:'Claw keratin growth rate uncontrolled — claws continue extending, become unwieldy'},
+  {id:'hallucigenia',name:'HALLUCIGENIA',status:'EXTINCT',icon:'🌵',rarity:'uncommon',
+   desc:'Hallucigenia sparsa — Cambrian lobopod. Paired dorsal spines. One of the most alien body plans ever discovered.',
+   source:'Cambrian Burgess Shale extract. Uncommon contracts.',cost:14,
+   possibleMuts:['hallucigenia_spines'],
+   successChance:0.55,adverseChance:0.15,
+   adverseEffect:'Spine growth pattern inverted — spines erupt through organs internally before breaking outward'},
+  {id:'anomalocaris',name:'ANOMALOCARIS',status:'EXTINCT',icon:'🔮',rarity:'legendary',
+   desc:'Anomalocaris canadensis — Cambrian apex predator with 16,000-lens compound eyes on stalks. Largest animal of its era.',
+   source:'Cambrian Burgess Shale. Ultra-rare arena reward.',cost:30,
+   possibleMuts:['anomalo_eyes'],
+   successChance:0.40,adverseChance:0.30,
+   adverseEffect:'Eye stalks grow but neural integration fails — subject sees double from uncorrelated inputs, total disorientation'},
+  {id:'jaekelopterus',name:'JAEKELOPTERUS',status:'EXTINCT',icon:'🦐',rarity:'legendary',
+   desc:'Jaekelopterus rhenaniae — 2.5m sea scorpion. Largest arthropod in history. Fully mineralised carapace.',
+   source:'Devonian fossil, extremely rare. Top arena reward.',cost:35,
+   possibleMuts:['jaekel_armor','arthro_chitin'],
+   successChance:0.40,adverseChance:0.28,
+   adverseEffect:'Carapace grows uncontrolled — compression of internal organs if not surgically managed'},
+  {id:'opabinia',name:'OPABINIA',status:'EXTINCT',icon:'👁',rarity:'uncommon',
+   desc:'Opabinia regalis — 5 eyes, frontal proboscis, 15 body segments. One of the most unique organisms ever to exist.',
+   source:'Cambrian shale. Scientific contracts.',cost:12,
+   possibleMuts:['anomalo_eyes','chromatophore'],
+   successChance:0.45,adverseChance:0.20,
+   adverseEffect:'Proboscis analogue grows from upper lip — speech severely impaired'},
+];
+
+// ── DNA RARITY COLOURS ──
+const DNA_RARITY_COLOR={living:'#3dff8f',uncommon:'#1fd8e8',rare:'#ff7c22',legendary:'#b044ff'};
+function dnaRarityColor(a){
+  if(a.rarity==='legendary')return DNA_RARITY_COLOR.legendary;
+  if(a.rarity==='rare')return DNA_RARITY_COLOR.rare;
+  if(a.status==='LIVING')return DNA_RARITY_COLOR.living;
+  return DNA_RARITY_COLOR.uncommon;
+}
+
+// ── INJECT DNA ──
+function injectDNA(subIdx, sampleId){
+  const sub=G.subjects[subIdx];
+  const sampleIndex=G.dnaInventory.findIndex(s=>s.id===sampleId&&!s.used);
+  if(!sub||sampleIndex===-1){pushNotif('Invalid injection','warn');return;}
+  const sample=G.dnaInventory[sampleIndex];
+  const animal=ANIMAL_DNA.find(a=>a.id===sample.animalId);
+  if(!animal){pushNotif('Unknown DNA source','warn');return;}
+  if(sub.status!=='available'){pushNotif(sub.name+' must be AVAILABLE','warn');return;}
+
+  // Mark used
+  G.dnaInventory[sampleIndex].used=true;
+
+  const roll=Math.random();
+  // Adverse check first (independent)
+  const adverseRoll=Math.random();
+  let outcome, mutApplied=null, adverseTriggered=false;
+
+  if(adverseRoll<animal.adverseChance){
+    adverseTriggered=true;
+  }
+
+  if(roll<animal.successChance){
+    // Pick a mutation from possibleMuts that subject doesn't already have
+    const available=animal.possibleMuts.filter(mid=>!sub.genes.includes(mid));
+    if(available.length){
+      mutApplied=available[Math.floor(Math.random()*available.length)];
+      const m=getMut(mutApplied);
+      if(m){
+        sub.genes.push(mutApplied);
+        // Apply stat changes
+        if(m.stats)for(const[k,v]of Object.entries(m.stats))sub.stats[k]=(sub.stats[k]||0)+v;
+        sub.instability=Math.min(100,(sub.instability||0)+(m.instab||0));
+        outcome='success';
+      } else {outcome='partial';}
+    } else {
+      outcome='partial'; // already has all mutations from this animal
+    }
+  } else if(roll<animal.successChance+0.20){
+    outcome='partial';
+    // Partial: minor instability bump only
+    sub.instability=Math.min(100,(sub.instability||0)+8);
+  } else {
+    outcome='failure';
+    sub.instability=Math.min(100,(sub.instability||0)+15);
+  }
+
+  // Apply adverse
+  if(adverseTriggered){
+    sub.instability=Math.min(100,(sub.instability||0)+12);
+    sub.stats.hp=Math.max(20,(sub.stats.hp||100)-15);
+  }
+
+  checkSubjectInstability();
+
+  // Build log message
+  let msg='';
+  if(outcome==='success'&&mutApplied){
+    const m=getMut(mutApplied);
+    msg=`✓ ${animal.name} DNA integrated — ${m?m.name:'Unknown mutation'} unlocked!`;
+    pushNotif(msg,'ok');
+  } else if(outcome==='partial'){
+    msg=`◑ ${animal.name} DNA partially integrated — no mutation expressed. Instability +8.`;
+    pushNotif(msg,'ok');
+  } else {
+    msg=`✗ ${animal.name} DNA rejected. Instability +15.`;
+    pushNotif(msg,'bad');
+  }
+  if(adverseTriggered){
+    pushNotif('⚠ ADVERSE REACTION: '+animal.adverseEffect,'bad');
+  }
+
+  addEvent(msg,'info');
+  renderRoster();renderHdr();
+}
+
+// ── DNA MARKET STOCK ──
+function refreshDNAMarket(){
+  // Pick 5 random animals weighted by rarity
+  const pool=[];
+  ANIMAL_DNA.forEach(a=>{
+    const w=a.rarity==='legendary'?1:a.rarity==='rare'?2:3;
+    for(let i=0;i<w;i++)pool.push(a);
+  });
+  const seen=new Set();
+  G.dnaMarketStock=[];
+  const shuffled=[...pool].sort(()=>Math.random()-0.5);
+  for(const a of shuffled){
+    if(!seen.has(a.id)&&G.dnaMarketStock.length<5){
+      seen.add(a.id);
+      G.dnaMarketStock.push({...a});
+    }
+  }
+}
+
+function buyDNA(animalId){
+  const animal=ANIMAL_DNA.find(a=>a.id===animalId);
+  const inStock=G.dnaMarketStock.find(a=>a.id===animalId);
+  if(!animal||!inStock){pushNotif('Not in stock','warn');return;}
+  if(G.biomass<animal.cost){pushNotif('Need '+animal.cost+' BIOMASS','warn');return;}
+  G.biomass-=animal.cost;
+  G.dnaInventory.push({id:Date.now()+Math.random(),animalId:animal.id,used:false});
+  G.dnaMarketStock=G.dnaMarketStock.filter(a=>a.id!==animalId);
+  renderHdr();renderMarket();
+  pushNotif(animal.name+' DNA acquired!','ok');
+}
+
+// ── AWARD DNA (used by arena/contracts) ──
+function awardRandomDNA(rarity){
+  const pool=ANIMAL_DNA.filter(a=>!rarity||(rarity==='legendary'?a.rarity==='legendary':rarity==='rare'?['rare','legendary'].includes(a.rarity):true));
+  if(!pool.length)return null;
+  const animal=pool[Math.floor(Math.random()*pool.length)];
+  G.dnaInventory.push({id:Date.now()+Math.random(),animalId:animal.id,used:false});
+  return animal;
+}
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+addStartingSubjects();
+refreshContracts();
+refreshMarket(); // also calls refreshDNAMarket inside
+// Give player one starter DNA sample (living, uncommon) as tutorial hook
+if(G.dnaInventory.length===0){
+  const starter=ANIMAL_DNA.filter(a=>a.status==='LIVING'&&a.rarity==='uncommon');
+  if(starter.length){const a=starter[Math.floor(Math.random()*starter.length)];G.dnaInventory.push({id:Date.now(),animalId:a.id,used:false});}
+}
+populateSelects();renderAll();renderBattleInfo();
+// Periodic instability check every 30s
+setInterval(checkSubjectInstability,30000);
+</script>
+</body>
+  </html>
